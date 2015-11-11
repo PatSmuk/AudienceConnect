@@ -1,0 +1,6 @@
+{
+	"username": "postgres",
+	"password": "postgres",
+	"host": "localhost",
+	"database": "audience_connect"
+}
