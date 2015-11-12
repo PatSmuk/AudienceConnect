@@ -1,223 +1,195 @@
 --
--- Create the database.
---
-
-DROP DATABASE audience_connect;
-CREATE DATABASE audience_connect;
-ALTER DATABASE audience_connect OWNER TO postgres;
-
---
--- Create the "schema" (kind of like a sub-database in PostgreSQL).
---
-
-CREATE SCHEMA public;
-ALTER SCHEMA public OWNER TO postgres;
-COMMENT ON SCHEMA public IS 'standard public schema';
-
-
---
 -- Create the tables.
 --
 
-CREATE TABLE "ChatRooms" (
+CREATE TABLE chat_rooms (
     id integer NOT NULL,
-    "roomName" text NOT NULL,
-    "startTimestamp" timestamp with time zone DEFAULT now() NOT NULL,
-    "endTimestamp" timestamp with time zone,
-    "invitationList" integer NOT NULL
+    room_name text NOT NULL,
+    start_timestamp timestamp with time zone DEFAULT now() NOT NULL,
+    end_timestamp timestamp with time zone,
+    invitation_list integer NOT NULL
 );
-ALTER TABLE "ChatRooms" OWNER TO postgres;
 
 
-CREATE SEQUENCE "ChatRooms_id_seq"
+CREATE SEQUENCE chat_rooms_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER TABLE "ChatRooms_id_seq" OWNER TO postgres;
-ALTER SEQUENCE "ChatRooms_id_seq" OWNED BY "ChatRooms".id;
+ALTER SEQUENCE chat_rooms_id_seq OWNED BY chat_rooms.id;
 
 
-CREATE TABLE "InvitationListMembers" (
-    "invitationList" integer NOT NULL,
-    "audienceMember" integer NOT NULL
+CREATE TABLE invitation_list_members (
+    invitation_list integer NOT NULL,
+    audience_member integer NOT NULL
 );
-ALTER TABLE "InvitationListMembers" OWNER TO postgres;
 
 
-CREATE TABLE "InvitationLists" (
+CREATE TABLE invitation_lists (
     id integer NOT NULL,
     presenter integer NOT NULL,
     subject text NOT NULL
 );
-ALTER TABLE "InvitationLists" OWNER TO postgres;
 
 
-CREATE SEQUENCE "InvitationLists_id_seq"
+CREATE SEQUENCE invitation_lists_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER TABLE "InvitationLists_id_seq" OWNER TO postgres;
-ALTER SEQUENCE "InvitationLists_id_seq" OWNED BY "InvitationLists".id;
+ALTER SEQUENCE invitation_lists_id_seq OWNED BY invitation_lists.id;
 
 
-CREATE TABLE "Messages" (
+CREATE TABLE messages (
     id integer NOT NULL,
     sender integer NOT NULL,
-    "timestamp" timestamp with time zone DEFAULT now() NOT NULL,
+    message_timestamp timestamp with time zone DEFAULT now() NOT NULL,
     room integer NOT NULL,
-    message text NOT NULL
+    message_text text NOT NULL
 );
-ALTER TABLE "Messages" OWNER TO postgres;
 
 
-CREATE SEQUENCE "Messages_id_seq"
+CREATE SEQUENCE messages_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER TABLE "Messages_id_seq" OWNER TO postgres;
-ALTER SEQUENCE "Messages_id_seq" OWNED BY "Messages".id;
+ALTER SEQUENCE messages_id_seq OWNED BY messages.id;
 
 
-CREATE TABLE "PollAnswers" (
+CREATE TABLE poll_answers (
     id integer NOT NULL,
     poll integer NOT NULL,
     answer text NOT NULL
 );
-ALTER TABLE "PollAnswers" OWNER TO postgres;
 
 
-CREATE SEQUENCE "PollAnswers_id_seq"
+CREATE SEQUENCE poll_answers_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER TABLE "PollAnswers_id_seq" OWNER TO postgres;
-ALTER SEQUENCE "PollAnswers_id_seq" OWNED BY "PollAnswers".id;
+ALTER SEQUENCE poll_answers_id_seq OWNED BY poll_answers.id;
 
 
-CREATE TABLE "PollVotes" (
+CREATE TABLE poll_votes (
     poll integer NOT NULL,
-    "user" integer NOT NULL,
+    user_id integer NOT NULL,
     answer integer NOT NULL
 );
-ALTER TABLE "PollVotes" OWNER TO postgres;
 
 
-CREATE TABLE "Polls" (
+CREATE TABLE polls (
     id integer NOT NULL,
-    "startTimestamp" timestamp with time zone DEFAULT now() NOT NULL,
-    "endTimestamp" timestamp with time zone,
+    start_timestamp timestamp with time zone DEFAULT now() NOT NULL,
+    end_timestamp timestamp with time zone,
     room integer NOT NULL,
     question text NOT NULL
 );
 
-ALTER TABLE "Polls" OWNER TO postgres;
 
-
-CREATE SEQUENCE "Polls_id_seq"
+CREATE SEQUENCE polls_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER TABLE "Polls_id_seq" OWNER TO postgres;
-ALTER SEQUENCE "Polls_id_seq" OWNED BY "Polls".id;
+ALTER SEQUENCE polls_id_seq OWNED BY polls.id;
 
 
-CREATE TABLE "Users" (
+CREATE TABLE users (
     id integer NOT NULL,
-    "userName" text NOT NULL,
     avatar text,
     verified boolean DEFAULT false NOT NULL,
     presenter boolean DEFAULT false NOT NULL,
     email text NOT NULL,
-    "passwordHash" text NOT NULL
+    password_hash text NOT NULL,
+    student_id char(9)
 );
-ALTER TABLE "Users" OWNER TO postgres;
 
 
 --
 -- Connect the serial ID columns with their sequence tables.
 --
 
-ALTER TABLE ONLY "InvitationLists" ALTER COLUMN id SET DEFAULT nextval('"InvitationLists_id_seq"'::regclass);
-ALTER TABLE ONLY "Messages" ALTER COLUMN id SET DEFAULT nextval('"Messages_id_seq"'::regclass);
-ALTER TABLE ONLY "PollAnswers" ALTER COLUMN id SET DEFAULT nextval('"PollAnswers_id_seq"'::regclass);
-ALTER TABLE ONLY "Polls" ALTER COLUMN id SET DEFAULT nextval('"Polls_id_seq"'::regclass);
+ALTER TABLE ONLY invitation_lists ALTER COLUMN id SET DEFAULT nextval('invitation_lists_id_seq'::regclass);
+ALTER TABLE ONLY messages ALTER COLUMN id SET DEFAULT nextval('messages_id_seq'::regclass);
+ALTER TABLE ONLY poll_answers ALTER COLUMN id SET DEFAULT nextval('poll_answers_id_seq'::regclass);
+ALTER TABLE ONLY polls ALTER COLUMN id SET DEFAULT nextval('polls_id_seq'::regclass);
 
 
 --
 -- Add primary keys and unique keys.
 --
 
-ALTER TABLE ONLY "ChatRooms"
-    ADD CONSTRAINT "ChatRooms_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY chat_rooms
+    ADD CONSTRAINT chat_rooms_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "InvitationListMembers"
-    ADD CONSTRAINT "InvitationListMembers_pkey" PRIMARY KEY ("invitationList", "audienceMember");
+ALTER TABLE ONLY invitation_list_members
+    ADD CONSTRAINT invitation_list_members_pkey PRIMARY KEY (invitation_list, audience_member);
 
-ALTER TABLE ONLY "InvitationLists"
-    ADD CONSTRAINT "InvitationLists_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY invitation_lists
+    ADD CONSTRAINT invitation_lists_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "Messages"
-    ADD CONSTRAINT "Messages_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "PollAnswers"
-    ADD CONSTRAINT "PollAnswers_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY poll_answers
+    ADD CONSTRAINT poll_answers_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "PollVotes"
-    ADD CONSTRAINT "PollVotes_pkey" PRIMARY KEY (poll, "user");
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_pkey PRIMARY KEY (poll, user_id);
 
-ALTER TABLE ONLY "Polls"
-    ADD CONSTRAINT "Polls_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY polls
+    ADD CONSTRAINT polls_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "Users"
-    ADD CONSTRAINT "Users_email_key" UNIQUE (email);
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
 
-ALTER TABLE ONLY "Users"
-    ADD CONSTRAINT "Users_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+    
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_student_id_key UNIQUE (student_id);
 
 
 --
 -- Add foreign keys (this is done last so everything is ready to be connected).
 --
 
-ALTER TABLE ONLY "ChatRooms"
-    ADD CONSTRAINT "ChatRooms_invitationList_fkey" FOREIGN KEY ("invitationList") REFERENCES "InvitationLists"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY chat_rooms
+    ADD CONSTRAINT chat_rooms_invitation_list_fkey FOREIGN KEY (invitation_list) REFERENCES invitation_lists(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "InvitationListMembers"
-    ADD CONSTRAINT "InvitationListMembers_audienceMember_fkey" FOREIGN KEY ("audienceMember") REFERENCES "Users"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY invitation_list_members
+    ADD CONSTRAINT invitation_list_members_audience_member_fkey FOREIGN KEY (audience_member) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "InvitationListMembers"
-    ADD CONSTRAINT "InvitationListMembers_invitationList_fkey" FOREIGN KEY ("invitationList") REFERENCES "InvitationLists"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY invitation_list_members
+    ADD CONSTRAINT invitation_list_members_invitation_list_fkey FOREIGN KEY (invitation_list) REFERENCES invitation_lists(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "InvitationLists"
-    ADD CONSTRAINT "InvitationLists_presenter_fkey" FOREIGN KEY (presenter) REFERENCES "Users"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY invitation_lists
+    ADD CONSTRAINT invitation_lists_presenter_fkey FOREIGN KEY (presenter) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "Messages"
-    ADD CONSTRAINT "Messages_room_fkey" FOREIGN KEY (room) REFERENCES "ChatRooms"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_room_fkey FOREIGN KEY (room) REFERENCES chat_rooms(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "Messages"
-    ADD CONSTRAINT "Messages_sender_fkey" FOREIGN KEY (sender) REFERENCES "Users"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_sender_fkey FOREIGN KEY (sender) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "PollAnswers"
-    ADD CONSTRAINT "PollAnswers_poll_fkey" FOREIGN KEY (poll) REFERENCES "Polls"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY poll_answers
+    ADD CONSTRAINT poll_answers_poll_fkey FOREIGN KEY (poll) REFERENCES polls(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "PollVotes"
-    ADD CONSTRAINT "PollVotes_answer_fkey" FOREIGN KEY (answer) REFERENCES "PollAnswers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_answer_fkey FOREIGN KEY (answer) REFERENCES poll_answers(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "PollVotes"
-    ADD CONSTRAINT "PollVotes_poll_fkey" FOREIGN KEY (poll) REFERENCES "Polls"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_poll_fkey FOREIGN KEY (poll) REFERENCES polls(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "PollVotes"
-    ADD CONSTRAINT "PollVotes_user_fkey" FOREIGN KEY ("user") REFERENCES "Users"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY poll_votes
+    ADD CONSTRAINT poll_votes_user_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY "Polls"
-    ADD CONSTRAINT "Polls_room_fkey" FOREIGN KEY (room) REFERENCES "ChatRooms"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY polls
+    ADD CONSTRAINT polls_room_fkey FOREIGN KEY (room) REFERENCES chat_rooms(id) ON UPDATE CASCADE ON DELETE CASCADE;
