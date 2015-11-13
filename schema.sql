@@ -18,6 +18,7 @@ CREATE SEQUENCE chat_rooms_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE chat_rooms_id_seq OWNED BY chat_rooms.id;
+ALTER TABLE chat_rooms ALTER id SET DEFAULT NEXTVAL('chat_rooms_id_seq');
 
 
 CREATE TABLE invitation_list_members (
@@ -40,6 +41,7 @@ CREATE SEQUENCE invitation_lists_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE invitation_lists_id_seq OWNED BY invitation_lists.id;
+ALTER TABLE invitation_lists ALTER id SET DEFAULT NEXTVAL('invitation_lists_id_seq');
 
 
 CREATE TABLE messages (
@@ -58,6 +60,7 @@ CREATE SEQUENCE messages_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE messages_id_seq OWNED BY messages.id;
+ALTER TABLE messages ALTER id SET DEFAULT NEXTVAL('messages_id_seq');
 
 
 CREATE TABLE poll_answers (
@@ -74,6 +77,7 @@ CREATE SEQUENCE poll_answers_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE poll_answers_id_seq OWNED BY poll_answers.id;
+ALTER TABLE poll_answers ALTER id SET DEFAULT NEXTVAL('poll_answers_id_seq');
 
 
 CREATE TABLE poll_votes (
@@ -99,6 +103,7 @@ CREATE SEQUENCE polls_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE polls_id_seq OWNED BY polls.id;
+ALTER TABLE polls ALTER id SET DEFAULT NEXTVAL('polls_id_seq');
 
 
 CREATE TABLE users (
@@ -110,6 +115,16 @@ CREATE TABLE users (
     password_hash text NOT NULL,
     student_id char(9)
 );
+
+
+CREATE SEQUENCE users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE users_id_seq OWNED BY users.id;
+ALTER TABLE users ALTER id SET DEFAULT NEXTVAL('users_id_seq');
 
 
 --
