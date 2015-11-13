@@ -89,7 +89,7 @@ Returns all information for the user with ID user_id.
 
 ----------------------------------------
 
-`GET /invitationLists`
+`GET /invitationLists/`
 
 Minimum access level: presenter
 
@@ -166,7 +166,7 @@ Remove a user from an invitation list (<list_id>).
 
 ----------------------------------------
 
-`GET /rooms`
+`GET /rooms/`
 
 Minimum access level: logged_in
 
@@ -216,7 +216,7 @@ Returns an array of **all** rooms.
 
 ----------------------------------------
 
-`POST /rooms`
+`POST /rooms/`
 
 Minimum access level: presenter
 
