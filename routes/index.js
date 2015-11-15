@@ -12,25 +12,18 @@ router.get('/', function(req, res) {
 });
 
 router.post('/register', function (req, res, next) {
-    function sendError(message, status) {
-        res.status(status ? status : 400);
-        res.json({error: message});
+    req.checkBody('email', 'Email address is missing').notEmpty();
+    req.checkBody('email', 'Email address is invalid').isEmail();
+    req.checkBody('password', 'Password is missing').notEmpty();
+    req.checkBody('password', 'Password must be between 1 and 32 characters long').isLength(1, 32);
+    
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({errors: errors});
     }
     
     var email = req.body.email;
     var password = req.body.password;
-    
-    if (!validator.isEmail(email)) {
-        return sendError('The "email" field was missing or not an email.');
-    }
-    
-    if (typeof password != 'string') {
-        return sendError('The "password" field was missing or not a string.');
-    }
-    
-    if (!validator.isLength(password, 1, 32)) {
-        return sendError('The "password" field was over 32 characters long.');
-    }
     
     database.getClient(function (err, client) {
         if (err) return next(err);
@@ -39,7 +32,7 @@ router.post('/register', function (req, res, next) {
             if (err) return next(err);
             
             if (results.rowCount > 0) {
-                return sendError('The email supplied is already registered.');
+                return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
             }
             
             bcrypt.genSalt(10, function (err, salt) {
@@ -50,7 +43,7 @@ router.post('/register', function (req, res, next) {
                     
                     client.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash], function (err) {
                         if (err) return next(err);
-                        res.json({error: ''});
+                        return res.json({});
                     });
                 });
             });
