@@ -5,12 +5,26 @@ var assert = require('assert');
 var database = require('../database');
 var bcrypt = require('bcryptjs');
 
-/* GET home page. */
-
+/*
+ * GET /
+ *
+ * Minimum access level: everyone
+ *
+ * Send the web app to the user.
+ */
 router.get('/', function(req, res) {
     res.render('index', { title: 'Express' });
 });
 
+/*
+ * POST /register
+ * 
+ * Registers a new user account.
+ *
+ * Parameters:
+ *  - email: a valid email address that is not already in use
+ *  - password: a string that is 1 to 32 characters long
+ */
 router.post('/register', function (req, res, next) {
     req.checkBody('email', 'Email address is missing').notEmpty();
     req.checkBody('email', 'Email address is invalid').isEmail();
