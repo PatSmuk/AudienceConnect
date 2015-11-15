@@ -1,8 +1,10 @@
+/* global process, __dirname */
 var gulp = require('gulp'),
   nodemon = require('gulp-nodemon'),
   plumber = require('gulp-plumber'),
   livereload = require('gulp-livereload'),
-  stylus = require('gulp-stylus');
+  stylus = require('gulp-stylus'),
+  mocha = require('gulp-mocha');
 
 gulp.task('stylus', function () {
     gulp.src('./public/css/*.styl')
@@ -31,6 +33,13 @@ gulp.task('develop', function () {
         this.stdout.pipe(process.stdout);
         this.stderr.pipe(process.stderr);
     });
+});
+
+gulp.task('test', function () {
+    return gulp.src('./test/**/*.js', {read: false})
+               .pipe(mocha({reporter: 'spec'}))
+               .once('error', function(){ process.exit(1); })
+               .once('end', function(){ process.exit(); });
 });
 
 gulp.task('default', [

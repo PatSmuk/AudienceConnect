@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha"
+    "test": "gulp test"
   },
   "dependencies": {
     "basic-auth": "^1.0.3",
