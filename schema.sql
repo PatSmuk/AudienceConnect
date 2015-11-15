@@ -124,7 +124,6 @@ CREATE SEQUENCE users_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE users_id_seq OWNED BY users.id;
-ALTER TABLE users ALTER id SET DEFAULT NEXTVAL('users_id_seq');
 
 
 --
@@ -135,6 +134,7 @@ ALTER TABLE ONLY invitation_lists ALTER COLUMN id SET DEFAULT nextval('invitatio
 ALTER TABLE ONLY messages ALTER COLUMN id SET DEFAULT nextval('messages_id_seq'::regclass);
 ALTER TABLE ONLY poll_answers ALTER COLUMN id SET DEFAULT nextval('poll_answers_id_seq'::regclass);
 ALTER TABLE ONLY polls ALTER COLUMN id SET DEFAULT nextval('polls_id_seq'::regclass);
+ALTER TABLE ONLY users ALTER id SET DEFAULT NEXTVAL('users_id_seq'::regclass);
 
 
 --
