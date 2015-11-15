@@ -8,8 +8,8 @@ Audience Connect JSON API Routes
     - users/
         - :user_id/             [`GET`]
     - invitationLists/          [`GET`, `POST`]
-        - :list_id/             [`GET`]
-            - :user_id/         [`POST`, `DELETE`]
+        - :list_id/             [`GET`, `POST`]
+            - :user_id/         [`DELETE`]
     - rooms/                    [`GET`, `POST`]
         - :room_id/             [`DELETE`]
             - messages/         [`GET`, `POST`]
@@ -196,7 +196,7 @@ Add a new chat room.
 
 Parameters:
  - `roomName`: the name of the new room
- - `invitationList`: the list of users that will be allowed access to the room
+ - `invitationList`: the ID of the list of users that will be allowed access to the room
 
 Example request:
 ```json
@@ -353,9 +353,5 @@ Example request:
 **Minimum access level:** presenter
 
 Close the poll identified with `:poll_id`.
-
-If the user is a presenter, they must own the poll.
-
-If the user is an admin, they can close any poll.
 
 ----------------------------------------
