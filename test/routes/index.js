@@ -3,6 +3,7 @@ var request = require('supertest');
 var app = require('../../app');
 var database = require('../../database');
 
+
 describe('POST /register', function () {
     
     beforeEach('delete all users', function (done) {
