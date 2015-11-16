@@ -79,6 +79,7 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
  * POST /rooms/:room_id/polls
  *
  * Adds a new poll to the chat room identified by :room_id.
+ * Try to test some shit
  */
 router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, res, next) {
     var room_id = req.params.room_id;
