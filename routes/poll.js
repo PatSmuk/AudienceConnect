@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
 
-/*
+/* albert was here
  * POST /polls/:poll_id/vote
  * 
  * Submits a vote in the poll identified with :poll_id.
