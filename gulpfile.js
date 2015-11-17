@@ -4,7 +4,8 @@ var gulp = require('gulp'),
   plumber = require('gulp-plumber'),
   livereload = require('gulp-livereload'),
   stylus = require('gulp-stylus'),
-  mocha = require('gulp-mocha');
+  mocha = require('gulp-mocha'),
+  env = require('gulp-env');
 
 gulp.task('stylus', function () {
     gulp.src('./public/css/*.styl')
@@ -36,6 +37,8 @@ gulp.task('develop', function () {
 });
 
 gulp.task('test', function () {
+    env({ vars: {NODE_ENV: 'testing'} });
+
     return gulp.src('./test/**/*.js', {read: false})
                .pipe(mocha({reporter: 'spec'}))
                .once('error', function(){ process.exit(1); })
