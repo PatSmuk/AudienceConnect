@@ -15,7 +15,9 @@ router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     database.getClient(function (err, client) {
         if (err) return next(err);
         
-        client.query("SELECT * FROM chat_rooms WHERE  EXISTS (SELECT * FROM invitation_list_members WHERE audience_member = $1)",[id], function (err, results) {
+        client.query("SELECT C.id, C.room_name, C.start_timestamp, C.end_timestamp,C.invitation_list FROM chat_rooms AS C,"
+        + " invitation_lists, invitation_list_members WHERE C.invitation_list = invitation_list_members.invitation_list " +
+        "AND invitation_list_members.audience_member = $1 GROUP BY C.id ORDER BY C.id ASC",[id], function (err, results) {
            if (err) return next(err);
       
             var chatrooms = [];
