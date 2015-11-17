@@ -113,7 +113,8 @@ CREATE TABLE users (
     presenter boolean DEFAULT false NOT NULL,
     email text NOT NULL,
     password_hash text NOT NULL,
-    student_id char(9)
+    student_id char(9),
+    full_name text
 );
 
 
