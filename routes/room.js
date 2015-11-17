@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
+var database = require("../database.js");
 
 /*
  * GET /rooms/
@@ -8,7 +9,29 @@ var auth = require('../auth');
  * Returns an array of all rooms you have access to.
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
-    res.send('Not yet implemented');
+    
+    var id = req.user.id; //get the user id
+        
+    database.getClient(function (err, client) {
+        if (err) return next(err);
+        
+        client.query("SELECT * FROM chat_rooms WHERE  EXISTS (SELECT * FROM invitation_list_members WHERE audience_member = $1)",[id], function (err, results) {
+           if (err) return next(err);
+      
+            var chatrooms = [];
+            
+            //add to the list of chatrooms
+            for(var i = 0; i < results.rowCount; i++){
+                console.log("added: " + results.rows[i].room_name);
+                var roomInfo = {"id":results.rows[i].id, "room_name": results.rows[i].id, 
+                "start_timestamp": results.rows[i].start_timestamp, "end_timestamp": results.rows[i].end_timestamp,
+                "invitation_list": results.rows[i].invitation_list};
+                chatrooms.push(roomInfo);
+            }
+            return res.send(chatrooms); //return the list of chatrooms
+       });
+       
+     });    
 });
 
 /*
