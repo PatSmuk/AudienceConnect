@@ -4,6 +4,7 @@ var validator = require('validator');
 var assert = require('assert');
 var database = require('../database');
 var bcrypt = require('bcryptjs');
+var Promise = require('bluebird');
 
 /*
  * GET /
@@ -39,30 +40,25 @@ router.post('/register', function (req, res, next) {
     var email = req.body.email;
     var password = req.body.password;
     
-    database.getClient(function (err, client) {
-        if (err) return next(err);
+    var genSalt = Promise.promisify(bcrypt.genSalt);
+    var hashPassword = Promise.promisify(bcrypt.hash);
+    
+    database.query("SELECT * FROM users WHERE email = $1", [email]).then(function (results) {
+        if (results.length > 0) {
+            return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
+        }
         
-        client.query("SELECT * FROM users WHERE email = $1", [email], function (err, results) {
-            if (err) return next(err);
-            
-            if (results.rowCount > 0) {
-                return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
-            }
-            
-            bcrypt.genSalt(10, function (err, salt) {
-                if (err) return next(err);
-                
-                bcrypt.hash(password, salt, function (err, hash) {
-                    if (err) return next(err);
-                    
-                    client.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash], function (err) {
-                        if (err) return next(err);
-                        return res.json({});
-                    });
-                });
-            });
+        return genSalt(10).then(function (salt) {
+            return hashPassword(password, salt);
+        })
+        .then(function (hash) {
+            return database.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash])
+        })
+        .then(function () {
+            res.json({});
         });
-    });
+    })
+    .catch(next);
 });
 
 module.exports = router;
