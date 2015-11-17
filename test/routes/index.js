@@ -7,14 +7,9 @@ var database = require('../../database');
 describe('POST /register', function () {
     
     beforeEach('delete all users', function (done) {
-        database.getClient(function (err, client, queryDone) {
-            if (err) return done(err);
-            
-            client.query('DELETE FROM users', function (err) {
-                queryDone();
-                done(err);
-            });
-        });
+        database.query('DELETE FROM users')
+        .then(function () { done(); })
+        .catch(done);
     });
     
     var goodEmail = 'test@example.com';
