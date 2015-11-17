@@ -9,9 +9,13 @@ exports.requireLevel = function (level) {
     return function (req, res, next) {
         var credentials = auth(req);
         
+        function invalidCredentials() {
+            res.status(401).send('Valid credentials are required');
+        }
+        
         // If credentials are missing, return error.
         if (!credentials) {
-            return res.status(401).send('Valid credentials are required');
+            return invalidCredentials();
         }
         
         database.getClient(function (err, client) {
@@ -20,40 +24,45 @@ exports.requireLevel = function (level) {
             var email = credentials.name;
             var password = credentials.pass;
             
-            client.query("SELECT password_hash, presenter, verified FROM users WHERE email = $1", [email], function (err, results) {
-                if (err) return next(err);
-                
-                // If account does not exist, return error.
-                if (results.rowCount != 1) {
-                    return res.status(401).send('Valid credentials are required');
-                }
-                
-                var row = results.rows[0];
-                var hash = row.password_hash;
-                var verified = row.verified;
-                var presenter = row.presenter;
-
-                // If the account has not been verified, return error.
-                if (!verified) {
-                    return res.status(401).send('Valid credentials are required');
-                }
-                
-                bcrypt.compare(password, hash, function (err, valid) {
+            client.query(
+                "SELECT id, avatar, verified, presenter, email, password_hash, student_id "+
+                "FROM users WHERE email = $1",
+                [email],
+                function (err, results) {
                     if (err) return next(err);
                     
-                    // If the password supplied is not correct, return error.
-                    if (!valid) {
-                        return res.status(401).send('Valid credentials are required');
+                    // If account does not exist, return error.
+                    if (results.rowCount != 1) {
+                        return invalidCredentials();
                     }
                     
-                    // If the access level is 'presenter' and they are not a presenter, return error.
-                    if (level == 'presenter' && !presenter) {
-                        return res.status(401).send('Valid credentials are required');
+                    var user = results.rows[0];
+                    var hash = user.password_hash;
+                    var verified = user.verified;
+                    var presenter = user.presenter;
+    
+                    // If the account has not been verified, return error.
+                    if (!verified) {
+                        return invalidCredentials();
                     }
                     
-                    next();
+                    bcrypt.compare(password, hash, function (err, valid) {
+                        if (err) return next(err);
+                        
+                        // If the password supplied is not correct, return error.
+                        if (!valid) {
+                            return invalidCredentials();
+                        }
+                        
+                        // If the access level is 'presenter' and they are not a presenter, return error.
+                        if (level == 'presenter' && !presenter) {
+                            return invalidCredentials();
+                        }
+                        
+                        req.user = user;
+                        next();
+                    });
                 });
-            });
         });
     }
 }
