@@ -2,6 +2,9 @@ var auth = require('basic-auth');
 var database = require('./database');
 var bcrypt = require('bcryptjs');
 var assert = require('assert');
+var Promise = require('bluebird');
+
+var checkPassword = Promise.promisify(bcrypt.compare);
 
 exports.requireLevel = function (level) {
     assert(level == 'logged_in' || level == 'presenter', 'Invalid access level: ' + level);
@@ -18,51 +21,44 @@ exports.requireLevel = function (level) {
             return invalidCredentials();
         }
         
-        database.getClient(function (err, client) {
-            if (err) return next(err);
+        var email = credentials.name;
+        var password = credentials.pass;
+        
+        database.query(
+            "SELECT id, avatar, verified, presenter, email, password_hash, student_id "+
+            "FROM users WHERE email = $1",
+            [email])
+        .then(function (results) {
+            // If account does not exist, return error.
+            if (results.length == 0) {
+                return invalidCredentials();
+            }
             
-            var email = credentials.name;
-            var password = credentials.pass;
+            var user = results[0];
+            var hash = user.password_hash;
+            var verified = user.verified;
+            var presenter = user.presenter;
             
-            client.query(
-                "SELECT id, avatar, verified, presenter, email, password_hash, student_id "+
-                "FROM users WHERE email = $1",
-                [email],
-                function (err, results) {
-                    if (err) return next(err);
-                    
-                    // If account does not exist, return error.
-                    if (results.rowCount != 1) {
-                        return invalidCredentials();
-                    }
-                    
-                    var user = results.rows[0];
-                    var hash = user.password_hash;
-                    var verified = user.verified;
-                    var presenter = user.presenter;
-    
-                    // If the account has not been verified, return error.
-                    if (!verified) {
-                        return invalidCredentials();
-                    }
-                    
-                    bcrypt.compare(password, hash, function (err, valid) {
-                        if (err) return next(err);
-                        
-                        // If the password supplied is not correct, return error.
-                        if (!valid) {
-                            return invalidCredentials();
-                        }
-                        
-                        // If the access level is 'presenter' and they are not a presenter, return error.
-                        if (level == 'presenter' && !presenter) {
-                            return invalidCredentials();
-                        }
-                        
-                        req.user = user;
-                        next();
-                    });
-                });
-        });
+            // If the account has not been verified, return error.
+            if (!verified) {
+                return invalidCredentials();
+            }
+            
+            return checkPassword(password, hash).then(function (valid) {
+                // If the password supplied is not correct, return error.
+                if (!valid) {
+                    return invalidCredentials();
+                }
+                
+                // If the access level is 'presenter' and they are not a presenter, return error.
+                if (level == 'presenter' && !presenter) {
+                    return invalidCredentials();
+                }
+                
+                req.user = user;
+                next();
+            })
+        })
+        .catch(next);
     }
 }
