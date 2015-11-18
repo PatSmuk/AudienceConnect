@@ -5,6 +5,7 @@ var assert = require('assert');
 var database = require('../database');
 var bcrypt = require('bcryptjs');
 var Promise = require('bluebird');
+var auth = require('../auth');
 
 /*
  * GET /
@@ -39,19 +40,13 @@ router.post('/register', function (req, res, next) {
     
     var email = req.body.email;
     var password = req.body.password;
-    
-    var genSalt = Promise.promisify(bcrypt.genSalt);
-    var hashPassword = Promise.promisify(bcrypt.hash);
-    
+
     database.query("SELECT * FROM users WHERE email = $1", [email]).then(function (results) {
         if (results.length > 0) {
             return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
         }
         
-        return genSalt(10).then(function (salt) {
-            return hashPassword(password, salt);
-        })
-        .then(function (hash) {
+        auth.hashPassword(password).then(function (hash) {
             return database.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash])
         })
         .then(function () {
