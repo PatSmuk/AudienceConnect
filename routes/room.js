@@ -13,8 +13,6 @@ var database = require("../database.js");
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     
     var id = req.user.id; //get the user id
-    console.log(id);
-        
     database.query("SELECT C.id, C.room_name, C.start_timestamp, C.end_timestamp,C.invitation_list FROM chat_rooms AS C,"
     + " invitation_lists, invitation_list_members WHERE C.invitation_list = invitation_list_members.invitation_list " +
     "AND invitation_list_members.audience_member = $1 GROUP BY C.id ORDER BY C.id ASC",[id]).then(function (results) {
