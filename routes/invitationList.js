@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
+var database = require('../database');
 
 /*
  * GET /invitationLists/
@@ -8,7 +9,12 @@ var auth = require('../auth');
  * Returns a list of all invitation lists you own.
  */
 router.get('/', auth.requireLevel('presenter'), function (req, res, next) {
-    res.send('Not yet implemented');
+    database.query(
+        'SELECT id, subject FROM invitation_lists WHERE presenter = $1',
+        [req.user.id]
+    )
+    .then(res.send.bind(res))
+    .catch(next);
 });
 
 /*
