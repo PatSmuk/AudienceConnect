@@ -3,6 +3,8 @@ var router = express.Router();
 var auth = require('../auth');
 var database = require("../database.js");
 
+
+
 /*
  * GET /rooms/
  *
@@ -11,23 +13,14 @@ var database = require("../database.js");
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     
     var id = req.user.id; //get the user id
-           
+    console.log(id);
+        
     database.query("SELECT C.id, C.room_name, C.start_timestamp, C.end_timestamp,C.invitation_list FROM chat_rooms AS C,"
     + " invitation_lists, invitation_list_members WHERE C.invitation_list = invitation_list_members.invitation_list " +
     "AND invitation_list_members.audience_member = $1 GROUP BY C.id ORDER BY C.id ASC",[id]).then(function (results) {
-    var chatrooms = [];
-        
-        //add to the list of chatrooms
-        for(var i = 0; i < results.rowCount; i++){
-            console.log("added: " + results.rows[i].room_name);
-            var roomInfo = {"id":results.rows[i].id, "room_name": results.rows[i].id, 
-            "start_timestamp": results.rows[i].start_timestamp, "end_timestamp": results.rows[i].end_timestamp,
-            "invitation_list": results.rows[i].invitation_list};
-            chatrooms.push(roomInfo);
-        }
-        return res.send(chatrooms); //return the list of chatrooms
+        return res.send(results); //return the list of chatrooms
     })
-    .catch(next);
+    .catch(next);   
 });
 
 /*
