@@ -99,18 +99,16 @@ Returns a list of all invitation lists you own.
 
 Example response:
 ```json
-{
-    "results": [
-        {
-            "id": 1,
-            "subject": "Computer Architecture"
-        },
-        {
-            "id": 2,
-            "subject": "Data Management"
-        }
-    ]
-}
+[
+    {
+        "id": 1,
+        "subject": "Computer Architecture"
+    },
+    {
+        "id": 2,
+        "subject": "Data Management"
+    }
+]
 ```
 
 ----------------------------------------
@@ -123,14 +121,12 @@ Returns a list of all the users who are part of the invitation list idenfitied b
 
 Example response:
 ```json
-{
-    "results": [
-        1,
-        2,
-        999,
-        1024
-    ]
-}
+[
+    1,
+    2,
+    999,
+    1024
+]
 ```
 
 ----------------------------------------
@@ -169,21 +165,19 @@ Returns an array of all rooms you have access to.
 
 Example response:
 ```json
-{
-    "results": [
-        {
-            "id": 1,
-            "roomName": "Pat's Room",
-            "startTime": 12910291
-        },
-        {
-            "id": 2,
-            "roomName": "Other Room",
-            "startTime": 123283893,
-            "endTime": 12381238211
-        }
-    ]
-}
+[
+    {
+        "id": 1,
+        "roomName": "Pat's Room",
+        "startTime": 12910291
+    },
+    {
+        "id": 2,
+        "roomName": "Other Room",
+        "startTime": 123283893,
+        "endTime": 12381238211
+    }
+]
 ```
 
 ----------------------------------------
@@ -224,24 +218,22 @@ Gets an array of all messages sent in the room identified by `:room_id`.
 
 Example response:
 ```json
-{
-    "results": [
-        {
-            "id": 1,
-            "sender": 12,
-            "timestamp": 12812182,
-            "message": "I like turtles",
-            "flags": ["removed"]
-        },
-        {
-            "id": 2,
-            "sender": 16,
-            "timestamp": 1281123777,
-            "message": "Hello sailor!",
-            "flags": ["presenter"]
-        }
-    ]
-}
+[
+    {
+        "id": 1,
+        "sender": 12,
+        "timestamp": 12812182,
+        "message": "I like turtles",
+        "flags": ["removed"]
+    },
+    {
+        "id": 2,
+        "sender": 16,
+        "timestamp": 1281123777,
+        "message": "Hello sailor!",
+        "flags": ["presenter"]
+    }
+]
 ```
 
 ----------------------------------------
@@ -277,36 +269,34 @@ Gets a list of all polls in the chat room identified by `:room_id`.
 
 Example response:
 ```json
-{
-    "results": [
-        {
-            "id": 1,
-            "startTime": 1212189182,
-            "endTime": 12819281282,
-            "question": "What is the biggest Mac?",
-            "answers": [
-                {
-                    "id": 1,
-                    "answer": "Yours"
-                },
-                {
-                    "id": 2,
-                    "answer": "Mine"
-                }
-            ],
-            "results": [
-                {
-                    "id": 1,
-                    "votes": 10
-                },
-                {
-                    "id": 2,
-                    "votes": 12912929
-                }
-            ]
-        }
-    ]
-}
+[
+    {
+        "id": 1,
+        "startTime": 1212189182,
+        "endTime": 12819281282,
+        "question": "What is the biggest Mac?",
+        "answers": [
+            {
+                "id": 1,
+                "answer": "Yours"
+            },
+            {
+                "id": 2,
+                "answer": "Mine"
+            }
+        ],
+        "results": [
+            {
+                "id": 1,
+                "votes": 10
+            },
+            {
+                "id": 2,
+                "votes": 12912929
+            }
+        ]
+    }
+]
 ```
 
 ----------------------------------------
