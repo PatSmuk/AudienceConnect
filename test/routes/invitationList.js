@@ -7,68 +7,42 @@ var testUtil = require('../testUtil');
 
 
 describe('GET /invitationLists/', function () {
-	var user = {
-		id: null,
-		email: 'user@example.com',
-		password: 'test'
-	};
-	var presenter = {
-		id: null,
-		email: 'presenter@example.com',
-		password: 'test'
-	};
-	var invitationList = {
-		id: null,
-		subject: 'Test Subject'
-	}
+
+	it('gets all the invitation lists you own', function (done) {
+		var invitationList = {
+			id: null,
+			subject: 'Test Subject'
+		}
+		var presenter = {
+			email: 'presenter@example.com',
+			password: 'test',
+			verified: true,
+			presenter: true
+		};
 	
-    beforeEach('delete all users', function (done) {
-		user.id = null;
-		presenter.id = null;
-		
-		testUtil.deleteAllUsers().then(done).catch(done);
-	});
-	
-	beforeEach('add a regular user', function (done) {
-		testUtil.insertUser(user.email, user.password, true, false)
-		.then(function (id) {
-			user.id = id;
-			done();
+		testUtil.deleteAllUsers().then(function () {
+			return testUtil.insertUser(presenter);
 		})
-		.catch(done);
-	});
-	
-	beforeEach('add a presenter user', function (done) {
-		testUtil.insertUser(presenter.email, presenter.password, true, true)
 		.then(function (id) {
-			presenter.id = id;
-			done();
+			return database.query(
+				'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2) RETURNING id',
+				[id, invitationList.subject]
+			)
 		})
-		.catch(done);
-	});
-	
-	beforeEach('add an invitation list for the presenter', function (done) {
-		database.query(
-			'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2) RETURNING id',
-			[presenter.id, invitationList.subject]
-		)
 		.then(function (results) {
 			invitationList.id = results[0].id;
-			done();
+			
+			request(app)
+				.get('/invitationLists/')
+				.auth(presenter.email, presenter.password)
+				.expect('Content-Type', /json/)
+				.expect(200)
+				.expect(function (res) {
+					assert.deepEqual(res.body, [invitationList]);
+				})
+				.end(done);
 		})
 		.catch(done);
-	});
-	
-	it('gets all the invitation lists you own', function (done) {
-		request(app)
-            .get('/invitationLists/')
-            .auth(presenter.email, presenter.password)
-            .expect('Content-Type', /json/)
-            .expect(200)
-			.expect(function (res) {
-				assert.deepEqual(res.body, [invitationList]);
-			})
-			.end(done);
 	});
 	
 	it("requires valid credentials", function (done) {
@@ -79,17 +53,79 @@ describe('GET /invitationLists/', function () {
 	});
 	
 	it("doesn't allow access to regular users", function (done) {
-		request(app)
-            .get('/invitationLists/')
-            .auth(user.email, user.password)
-            .expect('Content-Type', /json/)
-            .expect(401, done);
+		var user = {
+			email: 'user@example.com',
+			password: 'test',
+			verified: true,
+			presenter: false
+		};
+		
+		testUtil.deleteAllUsers().then(function () {
+			return testUtil.insertUser(user);
+		})
+		.then(function (id) {
+			request(app)
+				.get('/invitationLists/')
+				.auth(user.email, user.password)
+				.expect('Content-Type', /json/)
+				.expect(401, done);
+		})
+		.catch(done);
 	});
 });
 
 
 describe('POST /invitationLists/', function () {
-    
+	
+	it('allows presenters to create invitation lists', function (done) {
+		var presenter = {
+			email: 'presenter@example.com',
+			password: 'test',
+			verified: true,
+			presenter: true
+		};
+	
+		testUtil.deleteAllUsers().then(function () {
+			return testUtil.insertUser(presenter);
+		})
+		.then(function () {
+			request(app)
+				.post('/invitationLists/')
+				.auth(presenter.email, presenter.password)
+				.send({ subject: 'My Cool Subject' })
+				.expect('Content-Type', /json/)
+				.expect(200, done);
+		})
+		.catch(done);
+	});
+	
+	it("requires valid credentials", function (done) {
+		request(app)
+            .get('/invitationLists/')
+            .expect('Content-Type', /json/)
+            .expect(401, done);
+	});
+	
+	it("doesn't allow access to regular users", function (done) {
+		var user = {
+			email: 'user@example.com',
+			password: 'test',
+			verified: true,
+			presenter: false
+		};
+		
+		testUtil.deleteAllUsers().then(function () {
+			return testUtil.insertUser(user);
+		})
+		.then(function () {
+			request(app)
+				.get('/invitationLists/')
+				.auth(user.email, user.password)
+				.expect('Content-Type', /json/)
+				.expect(401, done);
+		})
+		.catch(done);
+	});
 })
 
 

@@ -26,7 +26,21 @@ router.get('/', auth.requireLevel('presenter'), function (req, res, next) {
  *  - subject: the subject of the list
  */
 router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
-    res.send('Not yet implemented');
+    req.checkBody('subject', 'Email address is missing').notEmpty();
+    
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+    
+    database.query(
+        'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2)',
+        [req.user.id, req.body.subject]
+    )
+    .then(function () {
+        res.json({});
+    })
+    .catch(next);
 });
 
 /*
