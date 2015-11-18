@@ -62,3 +62,12 @@ exports.requireLevel = function (level) {
         .catch(next);
     }
 }
+
+var genSalt = Promise.promisify(bcrypt.genSalt);
+var hash = Promise.promisify(bcrypt.hash);
+
+exports.hashPassword = function (password) {
+    return genSalt(10).then(function (salt) {
+        return hash(password, salt);
+    });
+}
