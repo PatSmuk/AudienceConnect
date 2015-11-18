@@ -5,12 +5,12 @@ exports.deleteAllUsers = function () {
 	return database.query('DELETE FROM users').then(function () {});
 }
 
-exports.insertUser = function (email, password, verified, presenter) {
-	return auth.hashPassword(password)
+exports.insertUser = function (user) {
+	return auth.hashPassword(user.password)
 	.then(function (hash) {
 		return database.query(
 			'INSERT INTO users (email, password_hash, verified, presenter) VALUES ($1, $2, $3, $4) RETURNING id',
-			[email, hash, verified, presenter]
+			[user.email, hash, user.verified, user.presenter]
 		);
 	})
 	.then(function (results) {
