@@ -13,7 +13,7 @@ exports.requireLevel = function (level) {
         var credentials = auth(req);
         
         function invalidCredentials() {
-            res.status(401).send('Valid credentials are required');
+            res.status(401).json({ error: 'Valid credentials are required' });
         }
         
         // If credentials are missing, return error.
