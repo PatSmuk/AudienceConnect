@@ -214,11 +214,7 @@ describe('POST /rooms/', function () {
         subject: 'Test Subject',
         presenter: null
 	};
-    var invitationList_2 = {
-        id: null,
-		subject: 'Test Subject 2',
-        presenter: null
-    };
+  
      beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
             .then(function (user_id) {
@@ -238,18 +234,13 @@ describe('POST /rooms/', function () {
             })
             .catch(done);
     });
-    beforeEach('add two invitation lists', function (done) {
+    beforeEach('add an invitation lists', function (done) {
         invitationList_1.presenter = presenter.id;
-        invitationList_2.presenter = presenter.id;
+        
         
         testUtil.insertInvitationList(invitationList_1)
         .then(function (invitationList_1_id) {
             invitationList_1.id = invitationList_1_id;
-            
-            return testUtil.insertInvitationList(invitationList_2);
-        })
-        .then(function (invitationList_2_id) {
-            invitationList_2.id = invitationList_2_id;
             
             done();
         })
@@ -265,7 +256,7 @@ describe('POST /rooms/', function () {
         request(app)
             .post('/rooms/')
             .auth(presenter.email, presenter.password)
-            .send({ roomName: goodRoomName, invitation_list: goodInvitationList })
+            .send({ roomName: goodRoomName, invitationList: goodInvitationList })
             .expect('Content-Type', /json/)
             .expect(200, done);
 
@@ -277,7 +268,7 @@ describe('POST /rooms/', function () {
         request(app)
             .post('/rooms/')
             .auth(presenter.email, presenter.password)
-            .send({ roomName: goodRoomName, invitation_list: badInvitationList })
+            .send({ roomName: goodRoomName, invitationList: badInvitationList })
             .expect('Content-Type', /json/)
             .expect(400, done);
     });
@@ -293,7 +284,7 @@ describe('POST /rooms/', function () {
         request(app)
             .post('/rooms/')
             .auth(presenter.email, presenter.password)
-            .send({ invitation_list: invitationList_1.id })
+            .send({ invitationList: invitationList_1.id })
             .expect(400, done);
     });
     it('requires an invitation list', function (done) {

@@ -44,7 +44,7 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
     
     //check the body for the values
     req.checkBody('roomName', 'Roomname is missing').notEmpty();
-    req.checkBody('invitation_list', 'Invitation List is missing').notEmpty();
+    req.checkBody('invitationList', 'Invitation List is missing').notEmpty();
    
     var errors = req.validationErrors();
     if (errors) {
@@ -52,26 +52,24 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
     }
     
     var roomName = req.body.roomName; 
-    var start_timestamp = (new Date()).toISOString(); 
-    var end_timestamp = null;
-    var invitation_list = req.body.invitation_list;
+    var invitationList = req.body.invitationList;
     
     database.query('SELECT id ' +
                     'FROM invitation_lists ' +
                     ' WHERE id = $1',
-                    [invitation_list]
+                    [invitationList]
     )
     .then(function(results){
         //no invitation list
         if(results.length < 1) {
-           return res.status(400).json({errors: [{param: 'invitation_list', msg: 'Invitation list does not exist', value: invitation_list}]});
+           return res.status(400).json({errors: [{param: 'invitationList', msg: 'Invitation list does not exist', value: invitationList}]});
         }
         
         //if the invitation list exists, then add the room
         database.query('INSERT INTO chat_rooms ' +
-                       '(room_name,start_timestamp,end_timestamp,invitation_list) ' +
-                       'VALUES ($1,$2,$3,$4)',
-                       [roomName,start_timestamp,end_timestamp,invitation_list]
+                       '(room_name,invitation_list) ' +
+                       'VALUES ($1,$2)',
+                       [roomName,invitationList]
         )
         .then(function(){
            return res.json({}); 
