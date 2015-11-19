@@ -9,7 +9,26 @@ var database = require("../database.js");
  * Returns an array of all rooms you have access to.
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
-    res.send('Not yet implemented');
+    var id = req.user.id;
+    
+    database.query(
+        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list "+
+        " FROM chat_rooms                                                       "+
+        " WHERE invitation_list IN (                                            "+
+        "     SELECT invitation_list                                            "+
+        "     FROM invitation_list_members                                      "+
+        "     WHERE audience_member = $1                                        "+
+        "     UNION                                                             "+
+        "     SELECT id                                                         "+
+        "     FROM invitation_lists                                             "+
+        "     WHERE presenter = $1                                              "+
+        " )                                                                     ",
+        [id]
+    )
+    .then(function (results) {
+        return res.send(results);
+    })
+    .catch(next);   
 });
 
 /*
