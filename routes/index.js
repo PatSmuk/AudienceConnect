@@ -27,6 +27,7 @@ router.get('/', function(req, res) {
  *  - email: a valid email address that is not already in use
  *  - password: a string that is 1 to 32 characters long
  */
+
 router.post('/register', function (req, res, next) {
     req.checkBody('email', 'Email address is missing').notEmpty();
     req.checkBody('email', 'Email address is invalid').isEmail();
