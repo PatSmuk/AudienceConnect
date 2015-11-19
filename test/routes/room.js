@@ -7,158 +7,175 @@ var testUtil = require('../testUtil');
 
 describe('GET /rooms/', function () {
     
-    var invitationList = {
-			id: null,
-			subject: 'Test Subject'
-	};
-    
-    
-        
     var user = {
-        userid: null,
+        id: null,
         email: 'user@example.com',
         password: 'test',
         verified: true,
         presenter: false
     };
-    
-    var user2 = {
-         userid: null,
+    var new_user = {
+        id: null,
         email: 'user2@example.com',
         password: 'test',
         verified: true,
         presenter: false
     };
-    
-    var invitationList2 = {
-        id: null,
-		subject: 'Test Subject2'
-    };
-    
-    
     var presenter = {
-            id: null,
-			email: 'presenter@example.com',
-			password: 'test',
-			verified: true,
-			presenter: true
-
-    };
-    var invitationListMembers = {
         id: null,
-        member: null
+        email: 'presenter@example.com',
+        password: 'test',
+        verified: true,
+        presenter: true
     };
     
-    var chat_room = {
-        id: null,
-        room_name: 'room',
-        start_timestamp: null,
-        end_timestamp: null,
-        invitation_list: null
-    };
-    var chat_room2 = {
-        id: null,
-        room_name: 'room2',
-        start_timestamp: null,
-        end_timestamp: null,
-        invitation_list: null
-    };
+    beforeEach('delete the users if they exist', function (done) {
+        database.query(
+            'DELETE FROM users WHERE email IN ($1, $2, $3)',
+            [user.email, new_user.email, presenter.email]
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    });
     
-    beforeEach('delete all users and add data to the database', function (done) {
-        testUtil.deleteAllUsers().then(function(){
-            return testUtil.insertUser(user);
+    beforeEach('add some users', function (done) {
+        testUtil.insertUser(user).then(function (user_id) {
+            user.id = user_id;
+            
+            return testUtil.insertUser(new_user);
         })
-        .then(function(id){
-            user.userid = id;
-            return id;
-        })
-        .then(function(){
+        .then(function (new_user_id) {
+            new_user.id = new_user_id;
+            
             return testUtil.insertUser(presenter);
         })
-        .then(function(id){
-            presenter.id = id;
-            return id;
-        })
-        .then(function(id){
-            return database.query('INSERT INTO invitation_lists (presenter,subject) VALUES ($1,$2) RETURNING id',[id,'subject']);
-        })
-        .then(function(id){
-            invitationList.id = id;
-            invitationListMembers.id = id;
-            invitationListMembers.member = user.userid;
-            return database.query('INSERT INTO invitation_list_members VALUES ($1,$2)', [id[0].id,user.userid]);
-        })
-        .then(function(id){
-            chat_room.invitation_list = invitationList.id;
-            chat_room.start_timestamp = '2015-11-18T20:47:55+00:00';
-            return database.query('INSERT INTO chat_rooms (room_name,start_timestamp,invitation_list) VALUES ($1,$2,$3) RETURNING id',[chat_room.room_name,chat_room.start_timestamp,invitationList.id[0].id])
+        .then(function (presenter_id) {
+            presenter.id = presenter_id;
             
-        })
-        .then(function(id){
-            chat_room.id = id;
-            return id;
-        })
-        .then(function(){
-            return testUtil.insertUser(user2);
-        })
-        .then(function(id){
-            user2.id = id;
-           
-            return id;
-        })
-        .then(function(id){
-            return database.query('INSERT INTO invitation_lists (presenter,subject) VALUES ($1,$2) RETURNING id',[presenter.id,'subject']);
-        })
-        .then(function (id){
-            invitationList2.id = id;
-            return id;
-        })
-        .then(function(){
-            chat_room2.invitation_list = invitationList2.id;
-            chat_room2.start_timestamp = '2015-11-18T20:47:55+00:00';
-            return database.query('INSERT INTO chat_rooms (room_name,start_timestamp,invitation_list) VALUES ($1,$2,$3) RETURNING id',[chat_room2.room_name,chat_room.start_timestamp,invitationList2.id[0].id])
-        })
-        .then(function(){
             done();
-        }).catch(done);
+        })
+        .catch(done);
+    });
+    
+    
+    var invitationList_1 = {
+        id: null,
+        subject: 'Test Subject'
+	};
+    var invitationList_2 = {
+        id: null,
+		subject: 'Test Subject 2'
+    };
+    
+    beforeEach('add two invitation lists', function (done) {
+        database.query(
+            'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2) RETURNING id',
+            [presenter.id, invitationList_1.subject]
+        )
+        .then(function (invitation_list_1_results) {
+            invitationList_1.id = invitation_list_1_results[0].id;
+            
+            return database.query(
+                'INSERT INTO invitation_lists (presenter, subject) VALUES ($1,$2) RETURNING id',
+                [presenter.id, invitationList_2.subject]
+            );
+        })
+        .then(function (invitation_list_2_results) {
+            invitationList_2.id = invitation_list_2_results[0].id;
+            
+            done();
+        })
+        .catch(done);
+    });
+    
+    
+    beforeEach('add the first user to the first invitation list', function (done) {
+        database.query(
+            'INSERT INTO invitation_list_members VALUES ($1, $2)',
+            [invitationList_1.id, user.id]
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    });
+    
+    
+    var chatRoom_1 = {
+        room_name: 'Cat Room',
+    };
+    var chatRoom_2 = {
+        room_name: 'Bat Room',
+    };
+    
+    beforeEach('add two chat rooms', function (done) {
+        database.query(
+            'INSERT INTO chat_rooms (room_name, invitation_list) VALUES ($1, $2)',
+            [chatRoom_1.room_name, invitationList_1.id]
+        )
+        .then(function () {
+            return database.query(
+                'INSERT INTO chat_rooms (room_name, invitation_list) VALUES ($1, $2)',
+                [chatRoom_2.room_name, invitationList_2.id]
+            );
+        })
+        .then(function () {
+            done();
+        })
+        .catch(done);
     });
 
 
     it('returns a list of rooms associated with the user', function (done) {
-        
         request(app)
             .get('/rooms/')
-            .auth(user.email,user.password)
+            .auth(user.email, user.password)
             .expect('Content-Type', /json/)
-            .expect(200,done);  
-            
+            .expect(200,done);
     });
     
-    it("returns only the rooms the user belongs to",function(done){
-       request(app)
-       .get('/rooms/')
-       .auth(user.email,user.password)
-       .expect(function(results){
-           //should be only one chat room for the user1
-           if(results.body.length != 1) return "not correct number of rooms";
-       })
-       .end(done);
+    it("returns only the rooms the user belongs to", function (done) {
+        request(app)
+            .get('/rooms/')
+            .auth(user.email, user.password)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .expect(function (results) {
+                if (results.body.length != 1)
+                    return "not correct number of rooms";
+            })
+            .end(done);
     });
     
-    it('requires valid credentials', function(done){
+    it('requires valid credentials', function (done) {
         request(app)
             .get('/rooms/')
             .expect('Content-Type', /json/)
             .expect(401, done);
     });
     
-    it('returns zero rooms for a user that just registered',function(done){
+    it('returns zero rooms for a user that just registered', function (done) {
         request(app)
-        .get('/rooms/')
-        .auth(user2.email,user2.password)
-        .expect('[]',done);
+            .get('/rooms/')
+            .auth(new_user.email, new_user.password)
+            .expect(200)
+            .expect('[]', done);
     });
     
+    it('returns rooms that you own', function (done) {
+        request(app)
+            .get('/rooms/')
+            .auth(presenter.email, presenter.password)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .expect(function (res) {
+                if (res.body.length != 2)
+                    return 'missing rooms that we own';
+            })
+            .end(done);
+    })
 });
 
 
