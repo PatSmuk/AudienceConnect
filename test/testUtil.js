@@ -1,6 +1,10 @@
 var database = require('../database');
 var auth = require('../auth');
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> c6858257953e83f7e0a997a0093bdb8b4144250d
 exports.insertUser = function (user) {
     return database.query('DELETE FROM users WHERE email = $1', [user.email])
     .then(function () {
@@ -100,4 +104,8 @@ exports.insertVote = function (vote) {
         );
     })
     .then(function () {}); // Suppress the empty array from database.query.
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> c6858257953e83f7e0a997a0093bdb8b4144250d

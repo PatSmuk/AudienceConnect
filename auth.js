@@ -25,8 +25,8 @@ exports.requireLevel = function (level) {
         var password = credentials.pass;
         
         database.query(
-            "SELECT id, avatar, verified, presenter, email, password_hash, student_id "+
-            "FROM users WHERE email = $1",
+            "SELECT verified, presenter, password_hash, * FROM users WHERE email = $1",
+
             [email])
         .then(function (results) {
             // If account does not exist, return error.
@@ -35,23 +35,21 @@ exports.requireLevel = function (level) {
             }
             
             var user = results[0];
-            var hash = user.password_hash;
-            var verified = user.verified;
-            var presenter = user.presenter;
-            
             // If the account has not been verified, return error.
-            if (!verified) {
+            if (!user.verified) {
                 return invalidCredentials();
             }
             
-            return checkPassword(password, hash).then(function (valid) {
+            return checkPassword(password, user.password_hash).then(function (valid) {
                 // If the password supplied is not correct, return error.
                 if (!valid) {
                     return invalidCredentials();
                 }
                 
                 // If the access level is 'presenter' and they are not a presenter, return error.
-                if (level == 'presenter' && !presenter) {
+
+                if (level == 'presenter' && !user.presenter) {
+
                     return invalidCredentials();
                 }
                 

@@ -1,14 +1,38 @@
 var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
+<<<<<<< HEAD
 var database = require('../database');
+=======
+var database = require("../database.js");
+
+>>>>>>> c6858257953e83f7e0a997a0093bdb8b4144250d
 /*
  * GET /rooms/
  *
  * Returns an array of all rooms you have access to.
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
-    res.send('Not yet implemented');
+    var id = req.user.id;
+    
+    database.query(
+        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list "+
+        " FROM chat_rooms                                                       "+
+        " WHERE invitation_list IN (                                            "+
+        "     SELECT invitation_list                                            "+
+        "     FROM invitation_list_members                                      "+
+        "     WHERE audience_member = $1                                        "+
+        "     UNION                                                             "+
+        "     SELECT id                                                         "+
+        "     FROM invitation_lists                                             "+
+        "     WHERE presenter = $1                                              "+
+        " )                                                                     ",
+        [id]
+    )
+    .then(function (results) {
+        return res.send(results);
+    })
+    .catch(next);   
 });
 
 /*
