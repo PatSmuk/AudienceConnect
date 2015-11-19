@@ -10,25 +10,25 @@ var database = require("../database.js");
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     var id = req.user.id;
-    
+
     database.query(
-        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list "+
-        " FROM chat_rooms                                                       "+
-        " WHERE invitation_list IN (                                            "+
-        "     SELECT invitation_list                                            "+
-        "     FROM invitation_list_members                                      "+
-        "     WHERE audience_member = $1                                        "+
-        "     UNION                                                             "+
-        "     SELECT id                                                         "+
-        "     FROM invitation_lists                                             "+
-        "     WHERE presenter = $1                                              "+
+        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list " +
+        " FROM chat_rooms                                                       " +
+        " WHERE invitation_list IN (                                            " +
+        "     SELECT invitation_list                                            " +
+        "     FROM invitation_list_members                                      " +
+        "     WHERE audience_member = $1                                        " +
+        "     UNION                                                             " +
+        "     SELECT id                                                         " +
+        "     FROM invitation_lists                                             " +
+        "     WHERE presenter = $1                                              " +
         " )                                                                     ",
         [id]
-    )
-    .then(function (results) {
-        return res.send(results);
-    })
-    .catch(next);   
+        )
+        .then(function (results) {
+            return res.send(results);
+        })
+        .catch(next);
 });
 
 /*
@@ -80,10 +80,31 @@ router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req
  * Censors the message identified by :message_id.
  */
 router.delete('/:room_id/messages/:message_id/', auth.requireLevel('presenter'), function (req, res, next) {
-    var room_id = req.params.room_id;
-    var message_id = req.params.message_id;
-    res.send('Not yet implemented');
+    var room = req.params.room_id;
+    var id = req.params.message_id;
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors }); //oh no! something must be missing!
+    }
+
+    database.query("SELECT * FROM messages WHERE id = $1", [id]).then(function (results) {
+        if (results.length <= 0)
+            return res.status(400).json({ errors:"Message ID does not exist" });
+    })
+    
+    database.query("SELECT * FROM messages WHERE room = $1", [room]).then(function (results){
+        if (results.length <=0)
+            return res.status(400).json({errors:"That room does not exist"});
+    })
+
+    database.query("DELETE FROM messages WHERE room = $1 AND id = $2", [room, id]).then(function () {
+        return res.send();
+    }).catch(next);
+    //res.send('$1, $2',[room,id]);
+    
 });
+
 
 /*
  * GET /rooms/:room_id/polls
