@@ -37,14 +37,23 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
     var end_timestamp = null;
     var invitation_list = req.body.invitation_list;
     
-    database.query('SELECT id FROM invitation_lists WHERE id = $1',[invitation_list]).then(function(results){
+    database.query('SELECT id ' +
+                    'FROM invitation_lists ' +
+                    ' WHERE id = $1',
+                    [invitation_list]
+    )
+    .then(function(results){
         //no invitation list
         if(results.length < 1) {
            return res.status(400).json({errors: [{param: 'invitation_list', msg: 'Invitation list does not exist', value: invitation_list}]});
         }
         
         //if the invitation list exists, then add the room
-        database.query('INSERT INTO chat_rooms (room_name,start_timestamp,end_timestamp,invitation_list) VALUES ($1,$2,$3,$4)',[roomName,start_timestamp,end_timestamp,invitation_list])
+        database.query('INSERT INTO chat_rooms ' +
+                       '(room_name,start_timestamp,end_timestamp,invitation_list) ' +
+                       'VALUES ($1,$2,$3,$4)',
+                       [roomName,start_timestamp,end_timestamp,invitation_list]
+        )
         .then(function(){
            return res.json({}); 
         });    
