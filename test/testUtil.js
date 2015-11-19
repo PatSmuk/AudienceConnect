@@ -96,7 +96,7 @@ exports.insertVote = function (vote) {
     )
     .then(function () {
         return database.query(
-            'INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2)',
+            'INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)',
             [vote.poll, vote.user_id, vote.answer]
         );
     })

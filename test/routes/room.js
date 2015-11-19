@@ -1,4 +1,8 @@
+
+
 /* global describe, beforeEach, it */
+
+/*
 var request = require('supertest');
 var app = require('../../app');
 var database = require('../../database');
@@ -206,3 +210,4 @@ describe('GET /rooms/:room_id/polls', function () {
 describe('POST /rooms/:room_id/polls', function () {
 
 });
+*/

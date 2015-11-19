@@ -14,7 +14,7 @@ describe('POST /polls/:poll_id/vote', function () {
     };
     var new_user = {
         id: null,
-        email: 'user2@example.com',
+        email: 'user3@example.com',
         password: 'test',
         verified: true,
         presenter: false
@@ -27,7 +27,7 @@ describe('POST /polls/:poll_id/vote', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist', function (done) {
+    beforeEach('delete the users if they exist!!!!!!!!', function (done) {
         database.query(
             'DELETE FROM users WHERE email IN ($1, $2, $3)',
             [user.email, new_user.email, presenter.email]
@@ -65,6 +65,7 @@ describe('POST /polls/:poll_id/vote', function () {
         subject: 'Test Subject',
         presenter: null
     };
+
     var invitationList_2 = {
         id: null,
         subject: 'Test Subject 2',
@@ -114,11 +115,118 @@ describe('POST /polls/:poll_id/vote', function () {
             .then(function () {
                 return testUtil.insertChatRoom(chatRoom_2);
             })
+            .then(function (results) {
+                return chatRoom_1.id = results;
+
+            })
             .then(function () {
                 done();
             })
             .catch(done);
     });
+    
+    
+    // this shit works
+    var poll = {
+        room: null,
+        question: 'les?'
+    };
+
+    var poll2 = {
+        room: null,
+        question: 'gay?'
+    };
+
+    beforeEach('make poll', function (done) {
+        poll.room = chatRoom_1.id;
+        poll2.room = chatRoom_1.id;
+
+        testUtil.insertPoll(poll)
+            .then(function () {
+                return testUtil.insertPoll(poll2);
+            })
+            .then(function (results) {
+                return poll.id = results;
+
+            })
+            .then(function (results2) {
+                return poll2.id = results2;
+            })
+            .then(function () {
+                done();
+            })
+            .catch(done);
+    });
+
+
+
+    var ans = {
+        poll_id: null,
+        answer: 'yesBITCH'
+    };
+
+    var ans2 = {
+        poll_id: null,
+        answer: 'noBITCH'
+    };
+
+    beforeEach('make answer', function (done) {
+        ans.poll_id = poll.id;
+        console.log("POLL ID IS FUCKING: " + poll.id);
+        ans2.poll_id = poll2.id;
+        console.log("poll_id INSIDE MAKE ANSWER: " + ans.poll_id);
+        console.log("poll_id2 INSIDE MAKE ANSWER: " + ans2.poll_id);
+        testUtil.addAnswerToPoll(ans.poll_id, ans.answer)
+            .then(function () {
+                return testUtil.addAnswerToPoll(ans2.poll_id, ans2.answer);
+            })
+            .then(function (results) {
+                console.log("RESULT 1: " + results);
+                return voteAns.answer = results;
+            })
+            .then(function (results2) {
+                console.log("RESULT 2: " + results2);
+                return voteAns.answer = results2;
+            })
+            .then(function () {
+                done();
+            })
+            .catch(done);
+    });
+
+
+    /////////////////////////////////////////////////
+  
+    var voteAns = {
+        poll: ans.poll_id,
+
+        user_id: user.id,
+        answer: null
+    };
+    /*
+        var voteAns2 = {
+            poll: poll.id,
+            user_id: new_user.id,
+            answer: ans.poll_id
+        };
+    */
+    it('login to vote', function (done) {
+
+        var poll_id = ans.poll_id;
+
+
+        console.log("poll_id: " + ans.poll_id);
+        console.log("user_id: " + user.id);
+        console.log("ans_id: " + voteAns.answer);
+
+        request(app)
+            .post('/polls/' + poll_id + '/vote')
+            .auth(user.email, user.password)
+            .send({ answer: voteAns.answer })
+            .expect('Content-Type', /json/)
+            .expect(200, done);
+    });
+
 });
 
 describe('POST /polls/:poll_id/close', function () {

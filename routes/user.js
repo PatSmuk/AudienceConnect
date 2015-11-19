@@ -11,8 +11,11 @@ var database = require('../database');
 router.get('/:user_id/', auth.requireLevel('logged_in'), function (req, res, next) {
     var user_id = req.params.user_id;
     
+    //return 404 if the user doesn't exist
+    
     database.query("SELECT id, verified, presenter, email, password_hash, student_id FROM users WHERE id = $1", [user_id]).then(function (result) {
         return res.send(result);
+    //send the first objects in the results array
     }).catch(next);
     
     //res.send('Not yet implemented');
