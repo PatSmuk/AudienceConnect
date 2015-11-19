@@ -69,9 +69,30 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
  *
  * Sends a chat message to the room identified by :room_id.
  */
-router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
-    var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+router.post('/:room_id/messages', auth.requireLevel('logged_in'), function (req, res, next) {
+    
+    req.checkBody('message_text', 'Message is missing').notEmpty();
+    
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({errors: errors}); //oh no! something must be missing!
+    }
+    
+   
+    var room = req.params.room_id;
+    var message_text = req.body.message_text;
+    //var room_id = req.rooms.id;
+    var user_id = req.user.id;
+    var time = (new Date()).toISOString(); 
+   
+   database.query('INSERT INTO messages (sender, message_timestamp, room, message_text) VALUES ($1, $2, $3, $4)', [user_id,time,room, message_text]).then(function (){
+       return res.send();
+   }).catch(next);
+   
+   
+   // res.send('Return Query');*/
+  // res.send("$1, $2",[room_id, message_text]);
+   
 });
 
 /*
