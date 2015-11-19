@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
+var database = require("../database.js");
 
 /*
  * GET /rooms/
@@ -21,7 +22,33 @@ router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
  *  - invitationList: the ID of the list of users that will be allowed access to the room
  */
 router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
-    res.send('Not yet implemented');
+    
+    //check the body for the values
+    req.checkBody('roomName', 'Roomname is missing').notEmpty();
+    req.checkBody('invitation_list', 'Invitation List is missing').notEmpty();
+   
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({errors: errors}); //oh no! something must be missing!
+    }
+    
+    var roomName = req.body.roomName; 
+    var start_timestamp = (new Date()).toISOString(); 
+    var end_timestamp = null;
+    var invitation_list = req.body.invitation_list;
+    
+    database.query('SELECT id FROM invitation_lists WHERE id = $1',[invitation_list]).then(function(results){
+        //no invitation list
+        if(results.length < 1) {
+           return res.status(400).json({errors: [{param: 'invitation_list', msg: 'Invitation list does not exist', value: invitation_list}]});
+        }
+        
+        //if the invitation list exists, then add the room
+        database.query('INSERT INTO chat_rooms (room_name,start_timestamp,end_timestamp,invitation_list) VALUES ($1,$2,$3,$4)',[roomName,start_timestamp,end_timestamp,invitation_list])
+        .then(function(){
+           return res.json({}); 
+        });    
+    }).catch(next);
 });
 
 /*
