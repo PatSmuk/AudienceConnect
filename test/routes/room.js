@@ -5,7 +5,7 @@ var database = require('../../database');
 var testUtil = require('../testUtil');
 
 
-describe('GET /rooms/', function () {
+/*describe('GET /rooms/', function () {
     
     var user = {
         id: null,
@@ -170,7 +170,7 @@ describe('GET /rooms/', function () {
             })
             .end(done);
     })
-});
+});*/
 
 
 describe('POST /rooms/', function () {
@@ -204,5 +204,149 @@ describe('GET /rooms/:room_id/polls', function () {
 
 
 describe('POST /rooms/:room_id/polls', function () {
+ var user = {
+        id: null,
+        email: 'user@example.com',
+        password: 'test',
+        verified: true,
+        presenter: false
+    };
+    var new_user = {
+        id: null,
+        email: 'user2@example.com',
+        password: 'test',
+        verified: true,
+        presenter: false
+    };
+    var presenter = {
+        id: null,
+        email: 'presenter@example.com',
+        password: 'test',
+        verified: true,
+        presenter: true
+    };
+    
+    beforeEach('delete the users if they exist', function (done) {
+        database.query(
+            'DELETE FROM users WHERE email IN ($1, $2, $3)',
+            [user.email, new_user.email, presenter.email]
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    });
+    
+    beforeEach('add some users', function (done) {
+        testUtil.insertUser(user)
+        .then(function (user_id) {
+            user.id = user_id;
+            
+            return testUtil.insertUser(new_user);
+        })
+        .then(function (new_user_id) {
+            new_user.id = new_user_id;
+            
+            return testUtil.insertUser(presenter);
+        })
+        .then(function (presenter_id) {
+            presenter.id = presenter_id;
+            
+            done();
+        })
+        .catch(done);
+    });
+    
+    
+    var invitationList_1 = {
+        id: null,
+        subject: 'Test Subject',
+        presenter: null
+	};
+    var invitationList_2 = {
+        id: null,
+		subject: 'Test Subject 2',
+        presenter: null
+    };
+    
+    beforeEach('add two invitation lists', function (done) {
+        invitationList_1.presenter = presenter.id;
+        invitationList_2.presenter = presenter.id;
+        
+        testUtil.insertInvitationList(invitationList_1)
+        .then(function (invitationList_1_id) {
+            invitationList_1.id = invitationList_1_id;
+            
+            return testUtil.insertInvitationList(invitationList_2);
+        })
+        .then(function (invitationList_2_id) {
+            invitationList_2.id = invitationList_2_id;
+            
+            done();
+        })
+        .catch(done);
+    });
+    
+    
+    beforeEach('add the first user to the first invitation list', function (done) {
+        testUtil.addUserToInvitationList(invitationList_1.id, user.id)
+        .then(done)
+        .catch(done);
+    });
+    
+    
+    var chatRoom_1 = {
+        room_name: 'Cat Room',
+        invitation_list: null
+    };
+
+    
+    
+    beforeEach('add two chat rooms', function (done) {
+        chatRoom_1.invitation_list = invitationList_1.id;
+    
+        
+        testUtil.insertChatRoom(chatRoom_1)
+        .then(function(results){
+        return chatRoom_1.id = results;
+    })
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    });
+    
+    var pres_question = "Do you like cheese?";
+    
+    it("adds a new poll to the chat room", function(done){
+        request(app)
+        .post('/rooms/'+chatRoom_1.id+'/polls')
+        .auth(presenter.email, presenter.password)
+        .send({question:pres_question})
+        .expect(200, done);
+    });
+    
+    it("Unarthoirzed User", function(done){
+        request(app)
+        .post('/rooms/:room_id/polls')
+        .auth(user.email, user.password)
+        .expect(401,done);
+    });
+    
+    it("Inviald Room", function(done){
+        request(app)
+        .post('/rooms/2/polls')
+        .auth(presenter.email, presenter.password)
+        .send({question:pres_question})
+        .expect(400, done);
+    })
+    
+    it("Question is empty", function(done){
+        request(app)
+        .post('/rooms/'+chatRoom_1.id+'/polls')
+        .auth(presenter.email, presenter.password)
+        .send()
+        .expect(400, done);
+    });
 
 });

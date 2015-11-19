@@ -10,25 +10,25 @@ var database = require("../database.js");
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     var id = req.user.id;
-    
+
     database.query(
-        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list "+
-        " FROM chat_rooms                                                       "+
-        " WHERE invitation_list IN (                                            "+
-        "     SELECT invitation_list                                            "+
-        "     FROM invitation_list_members                                      "+
-        "     WHERE audience_member = $1                                        "+
-        "     UNION                                                             "+
-        "     SELECT id                                                         "+
-        "     FROM invitation_lists                                             "+
-        "     WHERE presenter = $1                                              "+
+        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list " +
+        " FROM chat_rooms                                                       " +
+        " WHERE invitation_list IN (                                            " +
+        "     SELECT invitation_list                                            " +
+        "     FROM invitation_list_members                                      " +
+        "     WHERE audience_member = $1                                        " +
+        "     UNION                                                             " +
+        "     SELECT id                                                         " +
+        "     FROM invitation_lists                                             " +
+        "     WHERE presenter = $1                                              " +
         " )                                                                     ",
         [id]
-    )
-    .then(function (results) {
-        return res.send(results);
-    })
-    .catch(next);   
+        )
+        .then(function (results) {
+            return res.send(results);
+        })
+        .catch(next);
 });
 
 /*
@@ -101,8 +101,31 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
  * Adds a new poll to the chat room identified by :room_id.
  */
 router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, res, next) {
+    req.checkBody('question', 'Question is missing').notEmpty();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
+
+
     var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+    var time = (new Date()).toISOString();
+    var end_timestamp = null;
+    var question = req.body.question;
+
+    database.query("SELECT * FROM chat_rooms WHERE id = $1", [room_id]).then(function (results) {
+        if (results.length < 1) {
+            return res.status(400).json({ errors: "That room does not exist" });
+        }
+        return database.query("INSERT INTO polls (start_timestamp, end_timestamp, room, question) VALUES ($1, $2, $3, $4)", [time, end_timestamp, room_id, question])
+
+            .then(function () {
+                res.json({});
+            });
+    })
+        .catch(next);
 });
 
 module.exports = router;
