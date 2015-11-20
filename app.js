@@ -66,6 +66,13 @@ if (app.get('env') === 'development') {
     });
 }
 
+if (app.get('env') === 'testing') {
+    app.use(function (err, req, res, next) {
+        console.log(err.toString());
+        next(err);
+    });
+}
+
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
