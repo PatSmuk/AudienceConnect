@@ -84,7 +84,7 @@ describe('GET /users/:user_id/', function () {
     
     //this tests if the user doesnt exist
     it('user doesnt exist in db', function (done) {
-        var usr = 99999;
+        var usr = 9999;
         request(app)
             .get('/users/' + usr)
             .auth(user.email, user.password)
