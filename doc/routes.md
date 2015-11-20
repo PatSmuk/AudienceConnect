@@ -15,11 +15,12 @@ Audience Connect JSON API Routes
             - messages/         [`GET`, `POST`]
                 - :message_id/  [`DELETE`]
             - polls             [`GET`, `POST`]
+            - close             [`POST`]
     - polls/
         - :poll_id
             - vote              [`POST`]
             - close             [`POST`]
-            
+
 All routes return one of the following HTTP status codes:
 
  - `200`: success
@@ -317,6 +318,15 @@ Example request:
 	]
 }
 ```
+
+----------------------------------------
+
+`POST /rooms/:room_id/close`
+
+**Minimum access level:** presenter
+
+Close the chat room identified by `:room_id` so that
+no more messages can be posted in it.
 
 ----------------------------------------
 

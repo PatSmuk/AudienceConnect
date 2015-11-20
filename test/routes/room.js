@@ -574,3 +574,7 @@ describe('POST /rooms/:room_id/polls', function () {
         .expect(400, done);
     });
 });
+
+describe('POST /rooms/:room_id/close', function () {
+
+});

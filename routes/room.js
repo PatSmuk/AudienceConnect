@@ -179,4 +179,9 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
     .catch(next);
 });
 
+router.post('/:room_id/close', auth.requireLevel('presenter'), function (req, res, next) {
+    //var room_id = req.params.room_id;
+    res.send('Not yet implemented');
+});
+
 module.exports = router;
