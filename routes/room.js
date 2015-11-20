@@ -80,8 +80,7 @@ router.post('/:room_id/messages', auth.requireLevel('logged_in'), function (req,
     var room = req.params.room_id;
     var messages = req.body.messages;
     var user_id = req.user.id;
-    var time = (new Date()).toISOString();
-    database.query('INSERT INTO messages (sender, message_timestamp, room, message_text) VALUES ($1, $2, $3, $4)', [user_id, time, room, messages]).then(function () {
+    database.query('INSERT INTO messages (sender, room, message_text) VALUES ($1, $2, $3)', [user_id, room, messages]).then(function () {
         return res.send();
     }).catch(next);
 });
