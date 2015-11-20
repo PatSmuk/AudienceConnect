@@ -6,14 +6,14 @@ var database = require('../../database');
 
 describe('POST /register', function () {
     
-    beforeEach('delete all users', function (done) {
-        database.query('DELETE FROM users')
+    var goodEmail = 'test@example.com';
+    var goodPassword = 'test';
+    
+    beforeEach("ensure that the test email isn't taken", function (done) {
+        database.query('DELETE FROM users WHERE email = $1', [goodEmail])
         .then(function () { done(); })
         .catch(done);
     });
-    
-    var goodEmail = 'test@example.com';
-    var goodPassword = 'test';
     
     it('allows people to create accounts', function (done) {
         request(app)
