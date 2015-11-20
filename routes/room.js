@@ -10,7 +10,7 @@ var database = require("../database.js");
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     var id = req.user.id;
-    
+
     database.query(
         " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list "+
         " FROM chat_rooms                                                       "+
@@ -28,7 +28,7 @@ router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     .then(function (results) {
         return res.send(results);
     })
-    .catch(next);   
+    .catch(next);
 });
 
 /*
@@ -52,35 +52,36 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
 router.delete('/:room_id/', auth.requireLevel('presenter'), function (req, res, next) {
     var room_id = req.params.room_id;
      var id = req.user.id;
-     
+
     //check if the room exists
-    database.query('SELECT id FROM chat_rooms WHERE id = $1',
-                    [room_id]
+    database.query(
+        'SELECT id FROM chat_rooms WHERE id = $1',
+        [room_id]
     )
     .then(function(results){
         if(results.length != 1){
             return res.status(400).json({errors: [{param: 'room_id', msg: 'Chat room does not exist', value: room_id}]});
         }
         //check if the user that holds the room is trying to delete it
-        database.query('SELECT id FROM chat_rooms '+
-                    'WHERE invitation_list '+
-                    'IN (SELECT id FROM invitation_lists '+
-                        'WHERE presenter = $1) AND id = $2',
-                    [id,room_id]
+        return database.query(
+            'SELECT id FROM chat_rooms '+
+            'WHERE invitation_list '+
+            'IN (SELECT id FROM invitation_lists '+
+            'WHERE presenter = $1) AND id = $2',
+            [id,room_id]
         )
         .then(function(results){
             //if the presenter does not own it, throw an error
             if(results < 1){
                 return res.status(400).json({errors: [{param: 'presenter_id', msg: 'The presenter id does not own this room', value: room_id}]});
             }
-            database.query('DELETE FROM chat_rooms WHERE id = $1',[room_id]
-            )
+            database.query('DELETE FROM chat_rooms WHERE id = $1',[room_id])
             .then(function (){
-                return res.json({});  
+                return res.json({});
             });
         });
     })
-    .catch(next); 
+    .catch(next);
 });
 
 /*

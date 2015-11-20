@@ -3,10 +3,11 @@ var request = require('supertest');
 var app = require('../../app');
 var database = require('../../database');
 var testUtil = require('../testUtil');
+var assert = require('assert');
 
 
 describe('GET /rooms/', function () {
-    
+
     var user = {
         id: null,
         email: 'user@example.com',
@@ -28,7 +29,7 @@ describe('GET /rooms/', function () {
         verified: true,
         presenter: true
     };
-    
+
     beforeEach('delete the users if they exist', function (done) {
         database.query(
             'DELETE FROM users WHERE email IN ($1, $2, $3)',
@@ -39,28 +40,28 @@ describe('GET /rooms/', function () {
         })
         .catch(done);
     });
-    
+
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
-            
+
             return testUtil.insertUser(new_user);
         })
         .then(function (new_user_id) {
             new_user.id = new_user_id;
-            
+
             return testUtil.insertUser(presenter);
         })
         .then(function (presenter_id) {
             presenter.id = presenter_id;
-            
+
             done();
         })
         .catch(done);
     });
-    
-    
+
+
     var invitationList_1 = {
         id: null,
         subject: 'Test Subject',
@@ -71,33 +72,33 @@ describe('GET /rooms/', function () {
 		subject: 'Test Subject 2',
         presenter: null
     };
-    
+
     beforeEach('add two invitation lists', function (done) {
         invitationList_1.presenter = presenter.id;
         invitationList_2.presenter = presenter.id;
-        
+
         testUtil.insertInvitationList(invitationList_1)
         .then(function (invitationList_1_id) {
             invitationList_1.id = invitationList_1_id;
-            
+
             return testUtil.insertInvitationList(invitationList_2);
         })
         .then(function (invitationList_2_id) {
             invitationList_2.id = invitationList_2_id;
-            
+
             done();
         })
         .catch(done);
     });
-    
-    
+
+
     beforeEach('add the first user to the first invitation list', function (done) {
         testUtil.addUserToInvitationList(invitationList_1.id, user.id)
         .then(done)
         .catch(done);
     });
-    
-    
+
+
     var chatRoom_1 = {
         room_name: 'Cat Room',
         invitation_list: null
@@ -106,11 +107,11 @@ describe('GET /rooms/', function () {
         room_name: 'Bat Room',
         invitation_list: null
     };
-    
+
     beforeEach('add two chat rooms', function (done) {
         chatRoom_1.invitation_list = invitationList_1.id;
         chatRoom_2.invitation_list = invitationList_2.id;
-        
+
         testUtil.insertChatRoom(chatRoom_1)
         .then(function () {
             return testUtil.insertChatRoom(chatRoom_2);
@@ -129,7 +130,7 @@ describe('GET /rooms/', function () {
             .expect('Content-Type', /json/)
             .expect(200, done);
     });
-    
+
     it("returns only the rooms the user belongs to", function (done) {
         request(app)
             .get('/rooms/')
@@ -142,14 +143,14 @@ describe('GET /rooms/', function () {
             })
             .end(done);
     });
-    
+
     it('requires valid credentials', function (done) {
         request(app)
             .get('/rooms/')
             .expect('Content-Type', /json/)
             .expect(401, done);
     });
-    
+
     it('returns zero rooms for a user that just registered', function (done) {
         request(app)
             .get('/rooms/')
@@ -157,7 +158,7 @@ describe('GET /rooms/', function () {
             .expect(200)
             .expect('[]', done);
     });
-    
+
     it('returns rooms that you own', function (done) {
         request(app)
             .get('/rooms/')
@@ -186,13 +187,6 @@ describe('DELETE /rooms/:room_id/', function () {
         verified: true,
         presenter: false
     };
-    var new_user = {
-        id: null,
-        email: 'user2@example.com',
-        password: 'test',
-        verified: true,
-        presenter: false
-    };
     var presenter = {
         id: null,
         email: 'presenter@example.com',
@@ -200,7 +194,7 @@ describe('DELETE /rooms/:room_id/', function () {
         verified: true,
         presenter: true
     };
-    
+
      var presenter2 = {
         id: null,
         email: 'presenter2@example.com',
@@ -208,11 +202,11 @@ describe('DELETE /rooms/:room_id/', function () {
         verified: true,
         presenter: true
     };
-    
+
     beforeEach('delete the users if they exist', function (done) {
         database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3, $4)',
-            [user.email, new_user.email, presenter.email,presenter2.email]
+            'DELETE FROM users WHERE email IN ($1, $2, $3)',
+            [user.email, presenter.email, presenter2.email]
         )
         .then(function () {
             done();
@@ -223,17 +217,12 @@ describe('DELETE /rooms/:room_id/', function () {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
-            
-            return testUtil.insertUser(new_user);
-        })
-        .then(function (new_user_id) {
-            new_user.id = new_user_id;
-            
+
             return testUtil.insertUser(presenter);
         })
         .then(function (presenter_id) {
             presenter.id = presenter_id;
-            
+
             return testUtil.insertUser(presenter2);
         })
         .then(function (presenter2_id) {
@@ -242,126 +231,85 @@ describe('DELETE /rooms/:room_id/', function () {
         })
         .catch(done);
     });
-    
-     var invitationList_1 = {
+
+     var invitationList = {
         id: null,
         subject: 'Test Subject',
         presenter: null
 	};
-    var invitationList_2 = {
-        id: null,
-		subject: 'Test Subject 2',
-        presenter: null
-    };
-    var invitationList_3 = {
-        id: null,
-		subject: 'Test Subject 3',
-        presenter: null
-    }
-    
-    beforeEach('add three invitation lists', function (done) {
-        invitationList_1.presenter = presenter.id;
-        invitationList_2.presenter = presenter.id;
-        invitationList_3.presenter = presenter2.id;
-        
-        testUtil.insertInvitationList(invitationList_1)
+
+    beforeEach('add an invitation list', function (done) {
+        invitationList.presenter = presenter.id;
+
+        testUtil.insertInvitationList(invitationList)
         .then(function (invitationList_1_id) {
-            invitationList_1.id = invitationList_1_id;
-            
-            return testUtil.insertInvitationList(invitationList_2);
-        })
-        .then(function (invitationList_2_id) {
-            invitationList_2.id = invitationList_2_id;
-            
-           return testUtil.insertInvitationList(invitationList_3);
-        })
-        .then(function(invitationList_3_id){
-            invitationList_3.id = invitationList_3_id;
+            invitationList.id = invitationList_1_id;
+
             done();
         })
         .catch(done);
     });
-    
-    var chatRoom_1 = {
+
+    var chatRoom = {
         room_name: 'Cat Room',
         invitation_list: null,
         id: null
     };
-    var chatRoom_2 = {
-        room_name: 'Bat Room',
-        invitation_list: null,
-        id: null
-    };
-    var chatRoom_3 = {
-        room_name: 'Bat Room',
-        invitation_list: null,
-        id: null
-    };
-    
-    beforeEach('add three chat rooms', function (done) {
-        chatRoom_1.invitation_list = invitationList_1.id;
-        chatRoom_2.invitation_list = invitationList_2.id;
-        chatRoom_3.invitation_list = invitationList_3.id;
-        
-        
-        testUtil.insertChatRoom(chatRoom_1)
+
+    beforeEach('add a chat room', function (done) {
+        chatRoom.invitation_list = invitationList.id;
+
+        testUtil.insertChatRoom(chatRoom)
         .then(function (roomNumber) {
-            chatRoom_1.id = roomNumber;
-            return testUtil.insertChatRoom(chatRoom_2);
-        })
-        .then(function(roomNumber){
-            chatRoom_2.id = roomNumber;
-            return testUtil.insertChatRoom(chatRoom_3)
-        })
-        .then(function (roomNumber) {
-            chatRoom_3.id = roomNumber;
+            chatRoom.id = roomNumber;
             done();
         })
         .catch(done);
     });
-    var goodRoom = chatRoom_1.id;
+
     it('deletes the chatroom specified ', function(done){
-       goodRoom = chatRoom_1.id;
+       var goodRoom = chatRoom.id;
        request(app)
        .delete('/rooms/'+ goodRoom +'/')
        .auth(presenter.email, presenter.password)
-       .expect(function (res) { 
-           return database.query('SELECT id FROM chat_rooms WHERE id = $1',[goodRoom]);
-        })
        .expect('{}')
        .expect('Content-Type', /json/)
        .expect(200)
-       .end(done);
+       .end(function (err) {
+           if (err) done(err);
+           database.query('SELECT id FROM chat_rooms WHERE id = $1',[goodRoom])
+           .then(function (results) {
+               assert.equal(results.length, 0, 'Room should not show up in SELECT query');
+               done();
+           })
+           .catch(done);
+       });
     });
-    
-   
-    var presenter2Room;
+
     it('requires the presenter to own the room', function(done){
-        presenter2Room = chatRoom_3.id;
-         request(app)
-       .delete('/rooms/'+ presenter2Room +'/')
-       .auth(presenter.email, presenter.password)
+        var goodRoom = chatRoom.id;
+        request(app)
+       .delete('/rooms/'+ goodRoom +'/')
+       .auth(presenter2.email, presenter2.password)
        .expect(400)
        .end(done);
     });
-    
+
     it('requires the user at least be a presenter', function(done){
-       goodRoom = chatRoom_1.id;
+       var goodRoom = chatRoom.id;
        request(app)
        .delete('/rooms/'+ goodRoom +'/')
        .auth(user.email, user.password)
        .expect(401,done);
     });
-    
+
     it('requires a valid room number', function(done){
-        var badRoom = chatRoom_3.id + 100;
+        var badRoom = chatRoom.id + 1;
         request(app)
         .delete('/rooms/'+ badRoom +'/')
         .auth(presenter.email, presenter.password)
         .expect(400,done);
-        
-    })
-    
+    });
 });
 
 
