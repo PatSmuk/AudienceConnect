@@ -59,9 +59,10 @@ describe('GET /users/:user_id/', function () {
             .catch(done);
     });
     
-        
+
     //////////////TEST 3 START HERE /////////////////
     console.log("Tests commencing... standby for results");
+    
     
     //no auth check if user exists
     it('no auth user exists', function (done) {
@@ -71,7 +72,7 @@ describe('GET /users/:user_id/', function () {
             .expect('Content-Type', /json/)
             .expect(401, done)
     });
-    
+       
     //this tests if the fucking user exists
     it('user exists', function (done) {
         var usr = user.id;
@@ -91,10 +92,4 @@ describe('GET /users/:user_id/', function () {
             .expect('Content-Type', /json/)
             .expect(404, done)
     });
-    
-
-
-    ////////shit works until here, past this, untested territory, proceed at your own risk fuck////////////
-   
-    
 });

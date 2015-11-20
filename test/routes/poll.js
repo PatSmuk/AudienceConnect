@@ -27,7 +27,7 @@ describe('POST /polls/:poll_id/vote', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist!!!!!!!!', function (done) {
+    beforeEach('delete the users if they exist', function (done) {
         database.query(
             'DELETE FROM users WHERE email IN ($1, $2, $3)',
             [user.email, new_user.email, presenter.email]
@@ -172,20 +172,18 @@ describe('POST /polls/:poll_id/vote', function () {
 
     beforeEach('make answer', function (done) {
         ans.poll_id = poll.id;
-        //console.log("POLL ID IS FUCKING: " + poll.id);
         ans2.poll_id = poll2.id;
-        //console.log("poll_id INSIDE MAKE ANSWER: " + ans.poll_id);
-        //console.log("poll_id2 INSIDE MAKE ANSWER: " + ans2.poll_id);
+        
         testUtil.addAnswerToPoll(ans.poll_id, ans.answer)
             .then(function () {
                 return testUtil.addAnswerToPoll(ans2.poll_id, ans2.answer);
             })
             .then(function (results) {
-                //console.log("RESULT 1: " + results);
+             
                 return voteAns.answer = results;
             })
             .then(function (results2) {
-                //console.log("RESULT 2: " + results2);
+           
                 return voteAns.answer = results2;
             })
             .then(function () {
@@ -203,14 +201,7 @@ describe('POST /polls/:poll_id/vote', function () {
         user_id: user.id,
         answer: null
     };
-    /*
-        var voteAns2 = {
-            poll: poll.id,
-            user_id: new_user.id,
-            answer: ans.poll_id
-        };
-    */
-    
+   
     //////////////TESTS START HERE /////////////////
     console.log("Tests commencing... standby for results");
     var LAWL;
@@ -244,17 +235,14 @@ describe('POST /polls/:poll_id/vote', function () {
             .expect('Content-Type', /json/)
             .expect(200, done)
     });
+ 
 
-  
-    ////////shit works until here, past this, untested territory, proceed at your own risk fuck////////////
-   
     //this tests the fucking duplicate votes 
     it('duplicate votes', function (done) {
 
         console.log("poll_id: " + ans.poll_id);
         console.log("user_id: " + user.id);
         console.log("ans_id: " + voteAns.answer);
-        //database.query("INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)", [LAWL, LAWL2, LAWL1]).then(function () {
         database.query("INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)", [ans.poll_id, user.id, voteAns.answer]).then(function () {
             done();
         }).catch(done);
@@ -267,7 +255,7 @@ describe('POST /polls/:poll_id/vote', function () {
             .expect(404)
 
     });
-
+ 
     //this checks if the body is undefined
     it('checkbody', function (done) {
         var fuck = ans.poll_id;
@@ -279,6 +267,7 @@ describe('POST /polls/:poll_id/vote', function () {
             .expect(400, done)
 
     });
+    
 });
 
 describe('POST /polls/:poll_id/close', function () {
@@ -305,7 +294,7 @@ describe('POST /polls/:poll_id/close', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist!!!!!!!!', function (done) {
+    beforeEach('delete the users if they exist!', function (done) {
         database.query(
             'DELETE FROM users WHERE email IN ($1, $2, $3)',
             [user.email, new_user.email, presenter.email]
@@ -403,8 +392,6 @@ describe('POST /polls/:poll_id/close', function () {
             .catch(done);
     });
     
-    
-    // this shit works
     var poll = {
         room: null,
         question: 'les?'
@@ -449,21 +436,17 @@ describe('POST /polls/:poll_id/close', function () {
     };
 
     beforeEach('make answer', function (done) {
-        ans.poll_id = poll.id;
-        //console.log("POLL ID IS FUCKING: " + poll.id);
+        ans.poll_id = poll.id; 
         ans2.poll_id = poll2.id;
-        //console.log("poll_id INSIDE MAKE ANSWER: " + ans.poll_id);
-        //console.log("poll_id2 INSIDE MAKE ANSWER: " + ans2.poll_id);
+       
         testUtil.addAnswerToPoll(ans.poll_id, ans.answer)
             .then(function () {
                 return testUtil.addAnswerToPoll(ans2.poll_id, ans2.answer);
             })
             .then(function (results) {
-                //console.log("RESULT 1: " + results);
                 return voteAns.answer = results;
             })
             .then(function (results2) {
-                //console.log("RESULT 2: " + results2);
                 return voteAns.answer = results2;
             })
             .then(function () {
@@ -481,22 +464,15 @@ describe('POST /polls/:poll_id/close', function () {
         user_id: user.id,
         answer: null
     };
-    /*
-        var voteAns2 = {
-            poll: poll.id,
-            user_id: new_user.id,
-            answer: ans.poll_id
-        };
-    */
+
     
     //////////////TEST 2 START HERE /////////////////
     console.log("Test 2 commencing... standby for results");
-
+  
     //testing no auth close
     it('no auth close poll', function (done) {
         request(app)
             .post('/polls/' + ans.poll_id + '/close')
-            //.send({ answer: voteAns.answer })
             .expect('Content-Type', /json/)
             .expect(401, done)
     });
@@ -507,13 +483,12 @@ describe('POST /polls/:poll_id/close', function () {
         request(app)
             .post('/polls/' + poll_id + '/close')
             .auth(presenter.email, presenter.password)
-            //.send({ answer: voteAns.answer })
             .expect('Content-Type', /json/)
             .expect(200, done)
 
     });
 
-
+        
     //close the fucking vote if you are NOT presenter
     it('close the fucking poll if you are not presenter, should error', function (done) {
         var poll_id = ans.poll_id;
@@ -521,7 +496,6 @@ describe('POST /polls/:poll_id/close', function () {
         request(app)
             .post('/polls/' + poll_id + '/close')
             .auth(user.email, user.password)
-            //.send({ answer: voteAns.answer })
             .expect('Content-Type', /json/)
             .expect(401, done)
 
@@ -535,7 +509,6 @@ describe('POST /polls/:poll_id/close', function () {
         request(app)
             .post('/polls/' + poll_id + '/close')
             .auth(presenter.email, presenter.password)
-            //.send({ answer: voteAns.answer })
             .expect('Content-Type', /json/)
             .expect(404, done)
 
@@ -551,5 +524,4 @@ describe('POST /polls/:poll_id/close', function () {
             .expect('Content-Type', /json/)
             .expect(400, done)
     });
-
 });
