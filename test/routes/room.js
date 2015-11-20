@@ -463,5 +463,114 @@ describe('GET /rooms/:room_id/polls', function () {
 
 
 describe('POST /rooms/:room_id/polls', function () {
+    var user = {
+        id: null,
+        email: 'user@example.com',
+        password: 'test',
+        verified: true,
+        presenter: false
+    };
+    var presenter = {
+        id: null,
+        email: 'presenter@example.com',
+        password: 'test',
+        verified: true,
+        presenter: true
+    };
 
+    beforeEach('add some users', function (done) {
+        testUtil.insertUser(user)
+        .then(function (user_id) {
+            user.id = user_id;
+
+            return testUtil.insertUser(presenter);
+        })
+        .then(function (presenter_id) {
+            presenter.id = presenter_id;
+
+            done();
+        })
+        .catch(done);
+    });
+
+    var invitationList = {
+        id: null,
+        subject: 'Test Subject',
+        presenter: null
+	};
+
+    beforeEach('add two invitation lists', function (done) {
+        invitationList.presenter = presenter.id;
+
+        testUtil.insertInvitationList(invitationList)
+        .then(function (invitationList_id) {
+            invitationList.id = invitationList_id;
+
+            done();
+        })
+        .catch(done);
+    });
+
+    beforeEach('add the first user to the first invitation list', function (done) {
+        testUtil.addUserToInvitationList(invitationList.id, user.id)
+        .then(done)
+        .catch(done);
+    });
+
+    var chatRoom = {
+        room_name: 'Cat Room',
+        invitation_list: null
+    };
+
+    beforeEach('add two chat rooms', function (done) {
+        chatRoom.invitation_list = invitationList.id;
+
+        testUtil.insertChatRoom(chatRoom)
+        .then(function(results){
+            return chatRoom.id = results;
+        })
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    });
+
+    var pres_question = "Do you like cheese?";
+
+    it("adds a new poll to the chat room", function (done) {
+        request(app)
+        .post('/rooms/'+chatRoom.id+'/polls')
+        .auth(presenter.email, presenter.password)
+        .send({ question: pres_question })
+        .expect(200, done);
+    });
+
+    it("requires authorization", function (done) {
+        request(app)
+        .post('/rooms/'+chatRoom.id+'/polls')
+        .expect(401, done);
+    });
+
+    it("doesn't allow normal users to create polls", function (done) {
+        request(app)
+        .post('/rooms/'+chatRoom.id+'/polls')
+        .auth(user.email, user.password)
+        .expect(401, done);
+    });
+
+    it("requires a valid room", function (done) {
+        request(app)
+        .post('/rooms/2/polls')
+        .auth(presenter.email, presenter.password)
+        .send({ question: pres_question })
+        .expect(400, done);
+    })
+
+    it("requires a question", function (done) {
+        request(app)
+        .post('/rooms/'+chatRoom.id+'/polls')
+        .auth(presenter.email, presenter.password)
+        .send()
+        .expect(400, done);
+    });
 });

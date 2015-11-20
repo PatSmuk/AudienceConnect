@@ -157,8 +157,26 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
  * Adds a new poll to the chat room identified by :room_id.
  */
 router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, res, next) {
+    req.checkBody('question', 'Question is missing').notEmpty();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
     var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+    var question = req.body.question;
+
+    database.query("SELECT * FROM chat_rooms WHERE id = $1", [room_id]).then(function (results) {
+        if (results.length != 1) {
+            return res.status(400).json({ errors: "That room does not exist" });
+        }
+        return database.query("INSERT INTO polls (room, question) VALUES ($1, $2)", [room_id, question])
+        .then(function () {
+            res.json({});
+        });
+    })
+    .catch(next);
 });
 
 module.exports = router;
