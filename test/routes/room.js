@@ -304,7 +304,7 @@ describe('POST /rooms/:room_id/messages/', function () {
         request(app)
             .post('/rooms/' + goodChatRoom + '/messages/')
             .auth(presenter.email, presenter.password)
-            .send({ messages: good_message_text })
+            .send({ message: good_message_text })
             .expect(200)
             .expect(function (result){
                 database.query("SELECT * FROM messages WHERE message_text = $1", [good_message_text]).then(function (results){
