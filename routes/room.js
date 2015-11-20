@@ -61,7 +61,42 @@ router.delete('/:room_id/', auth.requireLevel('logged_in'), function (req, res, 
  */
 router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
     var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+    var id = req.user.id;
+    
+    //check if the room exists
+    database.query('SELECT id FROM chat_rooms WHERE id = $1',
+                    [room_id]
+    )
+    .then(function(results){
+        if(results.length != 1){
+            return res.status(400).json({errors: [{param: 'room_id', msg: 'Chat room does not exist', value: room_id}]});
+        }
+        //check if the user is in the room
+        database.query('SELECT id '+
+                       'FROM chat_rooms ' +
+                       'WHERE invitation_list '+
+                       'IN (SELECT invitation_list ' +
+                       '    FROM invitation_list_members '+
+                       '    WHERE audience_member = $1) ' +
+                       'AND id = $2',
+                       [id,room_id]
+        )
+        .then(function(results){
+            if(results < 1){//the user is not in the room
+                return  res.status(400).json({errors: [{param: 'room_id', msg: 'You do not belong to this room', value: room_id}]});
+            }
+            //get the message
+            database.query('SELECT (id,sender,message_timestamp,message_text) '+
+                        'FROM messages ' + 
+                        'WHERE room = $1',
+                        [room_id]
+            )
+            .then(function(results){
+                return res.send(results);//send the results of the query
+            });
+        });
+    })
+    .catch(next);
 });
 
 /*
