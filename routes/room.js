@@ -10,25 +10,25 @@ var database = require("../database.js");
  */
 router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
     var id = req.user.id;
-    
+
     database.query(
-        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list "+
-        " FROM chat_rooms                                                       "+
-        " WHERE invitation_list IN (                                            "+
-        "     SELECT invitation_list                                            "+
-        "     FROM invitation_list_members                                      "+
-        "     WHERE audience_member = $1                                        "+
-        "     UNION                                                             "+
-        "     SELECT id                                                         "+
-        "     FROM invitation_lists                                             "+
-        "     WHERE presenter = $1                                              "+
+        " SELECT id, room_name, start_timestamp, end_timestamp, invitation_list " +
+        " FROM chat_rooms                                                       " +
+        " WHERE invitation_list IN (                                            " +
+        "     SELECT invitation_list                                            " +
+        "     FROM invitation_list_members                                      " +
+        "     WHERE audience_member = $1                                        " +
+        "     UNION                                                             " +
+        "     SELECT id                                                         " +
+        "     FROM invitation_lists                                             " +
+        "     WHERE presenter = $1                                              " +
         " )                                                                     ",
         [id]
-    )
-    .then(function (results) {
-        return res.send(results);
-    })
-    .catch(next);   
+        )
+        .then(function (results) {
+            return res.send(results);
+        })
+        .catch(next);
 });
 
 /*
@@ -70,29 +70,20 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
  * Sends a chat message to the room identified by :room_id.
  */
 router.post('/:room_id/messages', auth.requireLevel('logged_in'), function (req, res, next) {
-    
-    req.checkBody('message_text', 'Message is missing').notEmpty();
-    
+
+    req.checkBody('messages', 'Message is missing').notEmpty();
+
     var errors = req.validationErrors();
     if (errors) {
-        return res.status(400).json({errors: errors}); //oh no! something must be missing!
+        return res.status(400).json({ errors: errors });
     }
-    
-   
     var room = req.params.room_id;
-    var message_text = req.body.message_text;
-    //var room_id = req.rooms.id;
+    var messages = req.body.messages;
     var user_id = req.user.id;
-    var time = (new Date()).toISOString(); 
-   
-   database.query('INSERT INTO messages (sender, message_timestamp, room, message_text) VALUES ($1, $2, $3, $4)', [user_id,time,room, message_text]).then(function (){
-       return res.send();
-   }).catch(next);
-   
-   
-   // res.send('Return Query');*/
-  // res.send("$1, $2",[room_id, message_text]);
-   
+    var time = (new Date()).toISOString();
+    database.query('INSERT INTO messages (sender, message_timestamp, room, message_text) VALUES ($1, $2, $3, $4)', [user_id, time, room, messages]).then(function () {
+        return res.send();
+    }).catch(next);
 });
 
 /*
