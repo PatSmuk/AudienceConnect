@@ -126,24 +126,19 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
         return res.status(400).json({ errors: errors });
     }
 
-
-
     var room_id = req.params.room_id;
-    var time = (new Date()).toISOString();
-    var end_timestamp = null;
     var question = req.body.question;
 
     database.query("SELECT * FROM chat_rooms WHERE id = $1", [room_id]).then(function (results) {
-        if (results.length < 1) {
+        if (results.length != 1) {
             return res.status(400).json({ errors: "That room does not exist" });
         }
-        return database.query("INSERT INTO polls (start_timestamp, end_timestamp, room, question) VALUES ($1, $2, $3, $4)", [time, end_timestamp, room_id, question])
-
-            .then(function () {
-                res.json({});
-            });
+        return database.query("INSERT INTO polls (room, question) VALUES ($1, $2)", [room_id, question])
+        .then(function () {
+            res.json({});
+        });
     })
-        .catch(next);
+    .catch(next);
 });
 
 module.exports = router;
