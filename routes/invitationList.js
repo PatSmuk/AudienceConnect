@@ -2,6 +2,26 @@ var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
 var database = require('../database');
+var assert = require('assert');
+
+
+function handle_list_id(req, res, next) {
+    var list_id = req.params.list_id;
+    var user_id = req.user.id;
+
+    database.query(
+        'SELECT * FROM invitation_lists WHERE id = $1 AND presenter = $2',
+        [list_id, user_id])
+    .then(function (results) {
+        if (results.length == 0) {
+            return res.status(404).json({ error: 'Invitation list '+list_id+' not found' })
+        }
+
+        req.invitationList = results[0];
+        next();
+    })
+    .catch(next);
+}
 
 /*
  * GET /invitationLists/
@@ -27,12 +47,12 @@ router.get('/', auth.requireLevel('presenter'), function (req, res, next) {
  */
 router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
     req.checkBody('subject', 'Email address is missing').notEmpty();
-    
+
     var errors = req.validationErrors();
     if (errors) {
         return res.status(400).json({ errors: errors });
     }
-    
+
     database.query(
         'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2)',
         [req.user.id, req.body.subject]
@@ -49,9 +69,25 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
  * Returns a list of all the users who are part of the
  * invitation list idenfitied by :list_id.
  */
-router.get('/:list_id/', auth.requireLevel('presenter'), function (req, res, next) {
-    var list_id = req.params.list_id;
-    res.send('Not yet implemented');
+router.get('/:list_id/', [auth.requireLevel('presenter'), handle_list_id], function (req, res, next) {
+    var list = req.invitationList;
+
+    database.query(
+        ' SELECT id                         '+
+        ' FROM users                        '+
+        ' WHERE id IN (                     '+
+        '     SELECT audience_member        '+
+        '     FROM invitation_list_members  '+
+        '     WHERE invitation_list = $1    '+
+        ' )                                 ',
+        [list.id]
+    )
+    .then(function (results) {
+        res.json(results.map(function (row) {
+            return row.id;
+        }));
+    })
+    .catch(next);
 });
 
 /*
@@ -62,8 +98,8 @@ router.get('/:list_id/', auth.requireLevel('presenter'), function (req, res, nex
  * Parameters:
  *  - user: the ID of the user that should be added to the list
  */
-router.post('/:list_id/', auth.requireLevel('presenter'), function (req, res, next) {
-    var list_id = req.params.list_id;
+router.post('/:list_id/', [auth.requireLevel('presenter'), handle_list_id], function (req, res, next) {
+    var list = req.invitationList;
     var user_id = req.params.user_id;
     res.send('Not yet implemented');
 });
@@ -74,8 +110,8 @@ router.post('/:list_id/', auth.requireLevel('presenter'), function (req, res, ne
  * Remove the user identified by :user_id from the
  * invitation list identified by :list_id.
  */
-router.delete('/:list_id/:user_id/', auth.requireLevel('presenter'), function (req, res, next) {
-    var list_id = req.params.list_id;
+router.delete('/:list_id/:user_id/', [auth.requireLevel('presenter'), handle_list_id], function (req, res, next) {
+    var list = req.invitationList;
     var user_id = req.params.user_id;
     res.send('Not yet implemented');
 });
