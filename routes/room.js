@@ -70,8 +70,26 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
  * Sends a chat message to the room identified by :room_id.
  */
 router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
-    var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+
+    req.checkBody('message', 'Message is missing').notEmpty();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
+    var room = req.params.room_id;
+    var message = req.body.message;
+    var user_id = req.user.id;
+
+    database.query(
+        'INSERT INTO messages (sender, room, message_text) VALUES ($1, $2, $3)',
+        [user_id, room, message]
+    )
+    .then(function () {
+        return res.send();
+    })
+    .catch(next);
 });
 
 /*
