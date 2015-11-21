@@ -75,16 +75,20 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
 
         //check if the user is in the room
         database.query(
-            ' SELECT id                         ' +
-            ' FROM chat_rooms                   ' +
-            ' WHERE invitation_list             ' +
-            ' IN (                              ' +
-            '    SELECT invitation_list         ' +
-            '    FROM invitation_list_members   ' +
-            '    WHERE audience_member = $1     ' +
-            ' )                                 ' +
-            ' AND id = $2                       ',
-            [user_id, room_id]
+            ' SELECT chat_rooms.id                      ' +
+            ' FROM chat_rooms, invitation_lists         ' +
+            ' WHERE (invitation_list                    ' +
+            ' IN (                                      ' +
+            '    SELECT invitation_list                 ' +
+            '    FROM invitation_list_members           ' +
+            '    WHERE audience_member = $1             ' +
+            '    )                                      ' +
+            ' OR (invitation_lists.id = invitation_list ' +
+            '        AND presenter = $2                 ' +
+            '    )                                      ' +
+            ' )                                         ' +
+            '  AND chat_rooms.id = $3                   ',
+            [user_id,user_id,room_id]
         )
         .then(function (results) {
             if (results < 1) { //the user is not in the room
