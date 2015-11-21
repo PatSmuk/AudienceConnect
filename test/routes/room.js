@@ -613,11 +613,11 @@ describe('GET /rooms/:room_id/polls', function () {
         database.query(
             'DELETE FROM users WHERE email IN ($1, $2, $3)',
             [user.email, new_user.email, presenter.email]
-            )
-            .then(function () {
-                done();
-            })
-            .catch(done);
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
     });
 
     beforeEach('add some users', function (done) {
@@ -646,24 +646,13 @@ describe('GET /rooms/:room_id/polls', function () {
         subject: 'Test Subject',
         presenter: null
     };
-    var invitationList_2 = {
-        id: null,
-        subject: 'Test Subject 2',
-        presenter: null
-    };
 
     beforeEach('add two invitation lists', function (done) {
         invitationList_1.presenter = presenter.id;
-        invitationList_2.presenter = presenter.id;
 
         testUtil.insertInvitationList(invitationList_1)
             .then(function (invitationList_1_id) {
                 invitationList_1.id = invitationList_1_id;
-
-                return testUtil.insertInvitationList(invitationList_2);
-            })
-            .then(function (invitationList_2_id) {
-                invitationList_2.id = invitationList_2_id;
 
                 done();
             })
@@ -683,22 +672,12 @@ describe('GET /rooms/:room_id/polls', function () {
         invitation_list: null
     };
 
-     var chatRoom_2 = {
-        room_name: 'Bat Room',
-        invitation_list: null
-    };
-
     beforeEach('add two chat rooms', function (done) {
         chatRoom_1.invitation_list = invitationList_1.id;
-        chatRoom_2.invitation_list = invitationList_2.id;
+
         testUtil.insertChatRoom(chatRoom_1)
             .then(function (results) {
-                return chatRoom_1.id = results;
-            })
-            .then(function () {
-                return testUtil.insertChatRoom(chatRoom_2);
-            })
-            .then(function () {
+                chatRoom_1.id = results;
                 done();
             })
             .catch(done);
@@ -721,30 +700,39 @@ describe('GET /rooms/:room_id/polls', function () {
             .catch(done);
     });
 
-    it('returns a list of polls in the room', function(done){
+    it('returns a list of polls in the room to audience members', function(done){
         request(app)
             .get('/rooms/'+polls_1.room+'/polls')
             .auth(user.email, user.password)
+            .expect(200)
             .expect('Content-Type', /json/)
-            .expect(200, done);
+            .expect(/HelloWord/)
+            .end(done);
     });
 
     it('requires valid credentials', function (done){
         request(app)
             .get('/rooms/'+polls_1.room+'/polls')
             .auth(new_user.email, new_user.password)
-            .expect(400, done);
-
+            .expect(404, done);
     });
 
     it('checks to see if the room exists', function(done){
         request(app)
             .get('/rooms/2/polls')
             .auth(user.email, user.password)
-            .expect(400, done);
+            .expect(404, done);
     });
 
-
+    it("returns a list of polls in the room to the room's owner", function (done) {
+        request(app)
+            .get('/rooms/'+polls_1.room+'/polls')
+            .auth(presenter.email, presenter.password)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect(/HelloWord/)
+            .end(done);
+    })
 });
 
 

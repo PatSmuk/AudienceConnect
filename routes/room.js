@@ -180,41 +180,43 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
     var room_id = req.params.room_id;
     var id = req.user.id;
 
-
-    database.query('SELECT id FROM chat_rooms WHERE id = $1',
+    database.query(
+        'SELECT id FROM chat_rooms WHERE id = $1',
         [room_id]
+    )
+    .then(function (results) {
+        if (results.length != 1) {
+            return res.status(404).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+        }
+
+        return database.query(
+            'SELECT id ' +
+            'FROM chat_rooms ' +
+            'WHERE invitation_list ' +
+            'IN (' +
+            '    SELECT invitation_list ' +
+            '    FROM invitation_list_members ' +
+            '    WHERE audience_member = $1) ' +
+            'AND id = $2',
+            [id, room_id]
         )
         .then(function (results) {
-            if (results.length != 1) {
-                return res.status(400).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+            if (results < 1) {
+                return res.status(404).json({ errors: [{ param: 'room_id', msg: 'You do not belong to this room', value: room_id }] });
             }
 
-            database.query('SELECT id ' +
-                'FROM chat_rooms ' +
-                'WHERE invitation_list ' +
-                'IN (SELECT invitation_list ' +
-                '    FROM invitation_list_members ' +
-                '    WHERE audience_member = $1) ' +
-                'AND id = $2',
-                [id, room_id]
-                )
-                .then(function (results) {
-                    if (results < 1) {
-                        return res.status(400).json({ errors: [{ param: 'room_id', msg: 'You do not belong to this room', value: room_id }] });
-                    }
-
-                    database.query('SELECT (id,start_timestamp,end_timestamp,room, question) ' +
-                        'FROM polls ' +
-                        'WHERE room = $1',
-                        [room_id]
-                        )
-                        .then(function (results) {
-                            return res.send(results);
-                        });
-                });
-        })
-        .catch(next);
-
+            database.query(
+                'SELECT (id, start_timestamp, end_timestamp, room, question) ' +
+                'FROM polls ' +
+                'WHERE room = $1',
+                [room_id]
+            )
+            .then(function (results) {
+                return res.send(results);
+            });
+        });
+    })
+    .catch(next);
 });
 
 /*
