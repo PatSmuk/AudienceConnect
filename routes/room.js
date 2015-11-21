@@ -128,50 +128,39 @@ router.delete('/:room_id/', auth.requireLevel('presenter'), function (req, res, 
  * Gets an array of all messages sent in the room identified by :room_id.
  */
 router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
-    var room_id = req.params.room_id;
+    var room_id = parseInt(req.params.room_id, 10);
     var user_id = req.user.id;
 
     //check if the room exists
     database.query(
-        'SELECT id FROM chat_rooms WHERE id = $1',
-        [room_id]
+        ' SELECT id ' +
+        ' FROM chat_rooms ' +
+        ' WHERE id = $1 ' +
+        ' AND invitation_list IN (' +
+        '     SELECT id ' +
+        '     FROM invitation_lists ' +
+        '     WHERE presenter = $2 ' +
+        '     UNION ' +
+        '     SELECT invitation_list ' +
+        '     FROM invitation_list_members ' +
+        '     WHERE audience_member = $2 ' +
+        ' )',
+        [room_id, user_id]
     )
     .then(function(results){
         if (results.length != 1){
             return res.status(404).json({ error: 'Room '+room_id+' not found' });
         }
 
-        //check if the user is in the room
-        database.query(
-            ' SELECT chat_rooms.id                      ' +
-            ' FROM chat_rooms, invitation_lists         ' +
-            ' WHERE (invitation_list                    ' +
-            ' IN (                                      ' +
-            '    SELECT invitation_list                 ' +
-            '    FROM invitation_list_members           ' +
-            '    WHERE audience_member = $1             ' +
-            '    )                                      ' +
-            ' OR (invitation_lists.id = invitation_list ' +
-            '        AND presenter = $2                 ' +
-            '    )                                      ' +
-            ' )                                         ' +
-            '  AND chat_rooms.id = $3                   ',
-            [user_id,user_id,room_id]
+        //get the message
+        return database.query(
+            ' SELECT id, sender, message_timestamp, message_text '+
+            ' FROM messages ' +
+            ' WHERE room = $1',
+            [room_id]
         )
         .then(function (results) {
-            if (results < 1) { //the user is not in the room
-                return res.status(401).json({ error: "You don't have access to room "+room_id });
-            }
-            //get the message
-            return database.query(
-                'SELECT id, sender, message_timestamp, message_text '+
-                'FROM messages ' +
-                'WHERE room = $1',
-                [room_id]
-            )
-            .then(function (results) {
-                return res.send(results); //send the results of the query
-            });
+            return res.send(results); //send the results of the query
         });
     })
     .catch(next);

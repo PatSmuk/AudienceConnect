@@ -617,7 +617,7 @@ describe('GET /rooms/:room_id/messages/', function () {
         request(app)
         .get('/rooms/' + chatRoom_1.id + '/messages/')
         .auth(new_user.email, new_user.password)
-        .expect(401,done)
+        .expect(404,done)
     });
 
     it('requires authorization', function(done){
