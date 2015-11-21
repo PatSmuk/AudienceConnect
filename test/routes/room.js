@@ -444,11 +444,18 @@ describe('POST /rooms/:room_id/messages/', function () {
         verified: true,
         presenter: true
     };
+    var hackerMan = {
+        id: null,
+        email: 'greatest_hacker@example.com',
+        password: 'C64',
+        verified: true,
+        presenter: false
+    }
 
     beforeEach('delete the users if they exist', function (done) {
         database.query(
-            'DELETE FROM users WHERE email IN ($1, $2)',
-            [user.email, presenter.email]
+            'DELETE FROM users WHERE email IN ($1, $2, $3)',
+            [user.email, presenter.email, hackerMan.email]
         )
         .then(function () {
             done();
@@ -460,12 +467,14 @@ describe('POST /rooms/:room_id/messages/', function () {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
-
             return testUtil.insertUser(presenter);
         })
         .then(function (presenter_id) {
             presenter.id = presenter_id;
-
+            return testUtil.insertUser(hackerMan);
+        })
+        .then(function (hacker_id) {
+            hackerMan.id = hacker_id;
             done();
         })
         .catch(done);
@@ -577,6 +586,15 @@ describe('POST /rooms/:room_id/messages/', function () {
         request(app)
             .post('/rooms/2/messages/')
             .auth(presenter.email, presenter.password)
+            .send({ message: good_message_text })
+            .expect(404, done);
+    });
+
+    it('requires the user to have access to the room', function (done) {
+        request(app)
+            .post('/rooms/' + chatRoom.id + '/messages/')
+            .auth(hackerMan.email, hackerMan.password)
+            .send({ message: 'HACKED LOL' })
             .expect(404, done);
     });
 });
@@ -588,7 +606,152 @@ describe('DELETE /rooms/:room_id/messages/:message_id', function () {
 
 
 describe('GET /rooms/:room_id/polls', function () {
+    var user = {
+        id: null,
+        email: 'user@example.com',
+        password: 'test',
+        verified: true,
+        presenter: false
+    };
+    var new_user = {
+        id: null,
+        email: 'user2@example.com',
+        password: 'test',
+        verified: true,
+        presenter: false
+    };
+    var presenter = {
+        id: null,
+        email: 'presenter@example.com',
+        password: 'test',
+        verified: true,
+        presenter: true
+    };
 
+    beforeEach('delete the users if they exist', function (done) {
+        database.query(
+            'DELETE FROM users WHERE email IN ($1, $2, $3)',
+            [user.email, new_user.email, presenter.email]
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    });
+
+    beforeEach('add some users', function (done) {
+        testUtil.insertUser(user)
+            .then(function (user_id) {
+                user.id = user_id;
+
+                return testUtil.insertUser(new_user);
+            })
+            .then(function (new_user_id) {
+                new_user.id = new_user_id;
+
+                return testUtil.insertUser(presenter);
+            })
+            .then(function (presenter_id) {
+                presenter.id = presenter_id;
+
+                done();
+            })
+            .catch(done);
+    });
+
+
+    var invitationList_1 = {
+        id: null,
+        subject: 'Test Subject',
+        presenter: null
+    };
+
+    beforeEach('add two invitation lists', function (done) {
+        invitationList_1.presenter = presenter.id;
+
+        testUtil.insertInvitationList(invitationList_1)
+            .then(function (invitationList_1_id) {
+                invitationList_1.id = invitationList_1_id;
+
+                done();
+            })
+            .catch(done);
+    });
+
+
+    beforeEach('add the first user to the first invitation list', function (done) {
+        testUtil.addUserToInvitationList(invitationList_1.id, user.id)
+            .then(done)
+            .catch(done);
+    });
+
+
+    var chatRoom_1 = {
+        room_name: 'Cat Room',
+        invitation_list: null
+    };
+
+    beforeEach('add two chat rooms', function (done) {
+        chatRoom_1.invitation_list = invitationList_1.id;
+
+        testUtil.insertChatRoom(chatRoom_1)
+            .then(function (results) {
+                chatRoom_1.id = results;
+                done();
+            })
+            .catch(done);
+    });
+
+    var polls_1 = {
+        room: null,
+        question: "HelloWord"
+    }
+
+    beforeEach('adds a poll', function (done) {
+        polls_1.room = chatRoom_1.id;
+        testUtil.insertPoll(polls_1)
+            .then(function (results) {
+                return polls_1.id = results;
+            })
+            .then(function () {
+                done();
+            })
+            .catch(done);
+    });
+
+    it('returns a list of polls in the room to audience members', function(done){
+        request(app)
+            .get('/rooms/'+polls_1.room+'/polls')
+            .auth(user.email, user.password)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect(/HelloWord/)
+            .end(done);
+    });
+
+    it('requires valid credentials', function (done){
+        request(app)
+            .get('/rooms/'+polls_1.room+'/polls')
+            .auth(new_user.email, new_user.password)
+            .expect(404, done);
+    });
+
+    it('checks to see if the room exists', function(done){
+        request(app)
+            .get('/rooms/2/polls')
+            .auth(user.email, user.password)
+            .expect(404, done);
+    });
+
+    it("returns a list of polls in the room to the room's owner", function (done) {
+        request(app)
+            .get('/rooms/'+polls_1.room+'/polls')
+            .auth(presenter.email, presenter.password)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect(/HelloWord/)
+            .end(done);
+    })
 });
 
 
