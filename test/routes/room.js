@@ -576,6 +576,7 @@ describe('POST /rooms/:room_id/messages/', function () {
         request(app)
             .post('/rooms/2/messages/')
             .auth(presenter.email, presenter.password)
+            .send({message: good_message_text})
             .expect(404, done);
     });
 });
