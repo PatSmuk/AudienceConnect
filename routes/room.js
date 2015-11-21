@@ -210,8 +210,41 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
 });
 
 router.post('/:room_id/close', auth.requireLevel('presenter'), function (req, res, next) {
-    //var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+     var room_id = req.params.room_id;
+     var id = req.user.id;
+
+    //check if the room exists
+    database.query(
+        'SELECT id FROM chat_rooms WHERE id = $1',
+        [room_id]
+    )
+    .then(function(results){
+        if(results.length != 1){
+            return res.status(404).json({errors: [{param: 'room_id', msg: 'Chat room not found', value: room_id}]});
+        }
+        //check if the user that holds the room is trying to delete it
+        return database.query(
+            'SELECT id FROM chat_rooms '+
+            'WHERE invitation_list '+
+            'IN (SELECT id FROM invitation_lists '+
+            'WHERE presenter = $1) AND id = $2',
+            [id,room_id]
+        )
+        .then(function(results){
+            //if the presenter does not own it, throw an error
+            if(results < 1){
+                return res.status(400).json({errors: [{param: 'presenter_id', msg: 'The presenter id does not own this room', value: room_id}]});
+            }
+            var end_timestamp = (new Date()).toISOString();
+            
+            database.query('UPDATE chat_rooms SET end_timestamp = $1 WHERE id = $2',[end_timestamp,room_id])
+            .then(function (){
+                return res.json({});
+            });
+        });
+    })
+    .catch(next);
+   
 });
 
 module.exports = router;
