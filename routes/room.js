@@ -219,9 +219,60 @@ router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req
  * Censors the message identified by :message_id.
  */
 router.delete('/:room_id/messages/:message_id/', auth.requireLevel('presenter'), function (req, res, next) {
-    var room_id = req.params.room_id;
-    var message_id = req.params.message_id;
-    res.send('Not yet implemented');
+    req.checkParams('room_id', 'A valid room ID is required').isInt();
+    req.checkParams('message_id', 'A valid message ID is required').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({errors: errors});
+    }
+
+    var room_id = parseInt(req.params.room_id, 10);
+    var message_id = parseInt(req.params.message_id, 10);
+    var user_id = req.user.id;
+
+    // Ensure that the room exists and the user has access to it.
+    database.query(
+        'SELECT * FROM chat_rooms           ' +
+        'WHERE id = $1                      ' +
+        'AND invitation_list IN (           ' +
+        '     SELECT id                     ' +
+        '     FROM invitation_lists         ' +
+        '     WHERE presenter = $2          ' +
+        '     UNION                         ' +
+        '     SELECT invitation_list        ' +
+        '     FROM invitation_list_members  ' +
+        '     WHERE audience_member = $2    ' +
+        ' )                                 ',
+        [room_id, user_id]
+    )
+    .then(function (results) {
+        if (results.length == 0) {
+            return res.status(404).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+        }
+
+        // Ensure that the user is the presenter of this room.
+        return database.query('SELECT presenter FROM invitation_lists WHERE id = (SELECT invitation_list FROM chat_rooms WHERE id = $1)', [room_id])
+        .then(function (results) {
+            if (results[0].presenter != user_id) {
+                return res.status(403).json({ error: 'You must be the presenter of the room' });
+            }
+
+            // Ensure that the message exists.
+            return database.query('SELECT * FROM messages WHERE id = $1 AND room = $2', [message_id, room_id])
+            .then(function (results) {
+                if (results.length == 0) {
+                    return res.status(404).json({ errors: [{ param: 'message_id', msg: 'Message does not exist', value: message_id }] });
+                }
+
+                return database.query('UPDATE messages SET censored = true WHERE id = $1', [message_id])
+                .then(function () {
+                    res.json({});
+                });
+            });
+        });
+    })
+    .catch(next);
 });
 
 /*

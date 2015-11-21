@@ -821,7 +821,200 @@ describe('POST /rooms/:room_id/messages/', function () {
 
 
 describe('DELETE /rooms/:room_id/messages/:message_id', function () {
+    var user = {
+        id: null,
+        email: 'user@example.com',
+        password: 'test',
+        verified: true,
+        presenter: false
+    };
+    var presenter = {
+        id: null,
+        email: 'presenter@example.com',
+        password: 'test',
+        verified: true,
+        presenter: true
+    };
+    var hackerMan = {
+        id: null,
+        email: 'greatest_hacker@example.com',
+        password: 'C64',
+        verified: true,
+        presenter: true
+    };
+    var newUser = {
+        id: null,
+        email: 'noob_face@example.com',
+        password: 'hunter2',
+        verified: true,
+        presenter: false
+    };
 
+    beforeEach('add some users', function (done) {
+        testUtil.insertUser(user)
+        .then(function (user_id) {
+            user.id = user_id;
+            return testUtil.insertUser(presenter);
+        })
+        .then(function (presenter_id) {
+            presenter.id = presenter_id;
+            return testUtil.insertUser(hackerMan);
+        })
+        .then(function (hacker_id) {
+            hackerMan.id = hacker_id;
+            return testUtil.insertUser(newUser);
+        })
+        .then(function (new_user_id) {
+            newUser.id = new_user_id;
+            done();
+        })
+        .catch(done);
+    });
+
+    var invitationList = {
+        id: null,
+        subject: 'Test Subject',
+        presenter: null
+    };
+
+    beforeEach('add an invitation list', function (done) {
+        invitationList.presenter = presenter.id;
+
+        testUtil.insertInvitationList(invitationList)
+        .then(function (invitationList_id) {
+            invitationList.id = invitationList_id;
+
+            done();
+        })
+        .catch(done);
+    });
+
+    beforeEach('add the user and the other presenter to the invitation list', function (done) {
+        testUtil.addUserToInvitationList(invitationList.id, user.id)
+        .then(function () {
+            return testUtil.addUserToInvitationList(invitationList.id, hackerMan.id);
+        })
+        .then(done)
+        .catch(done);
+    });
+
+    var chatRoom = {
+        room_name: 'Cat Room',
+        invitation_list: null
+    };
+
+    beforeEach('add a chat rooms', function (done) {
+        chatRoom.invitation_list = invitationList.id;
+
+        testUtil.insertChatRoom(chatRoom)
+        .then(function (chatRoom_id) {
+            chatRoom.id = chatRoom_id;
+            done();
+        })
+        .catch(done);
+    });
+
+    var message = {
+        id: null,
+        sender: null,
+        room: null,
+        message_text: 'Test message'
+    }
+
+    beforeEach('add a message in the chat room', function (done) {
+        message.sender = user.id;
+        message.room = chatRoom.id;
+
+        testUtil.insertMessage(message)
+        .then(function (message_id) {
+            message.id = message_id;
+            done();
+        })
+        .catch(done);
+    });
+
+    it('allows presenters to censor messages', function (done) {
+        request(app)
+            .delete('/rooms/' + chatRoom.id + '/messages/' + message.id)
+            .auth(presenter.email, presenter.password)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect('{}')
+            .end(function (err) {
+                if (err) done(err);
+
+                database.query('SELECT censored FROM messages WHERE id = $1', [message.id])
+                .then(function (results) {
+                    if (results.length != 1)
+                        return 'Expected exactly one message of ID ' + message.id;
+                    if (!results[0].censored)
+                        return 'Expected censored flag to be set';
+                    done();
+                });
+            })
+    });
+
+    it("requires credentials", function (done) {
+        request(app)
+            .delete('/rooms/' + chatRoom.id + '/messages/' + message.id)
+            .expect(401)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
+
+    it("doesn't allow users to censor messages", function (done) {
+        request(app)
+            .delete('/rooms/' + chatRoom.id + '/messages/' + message.id)
+            .auth(user.email, user.password)
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
+
+    it("doesn't allow other presenters to censor messages in rooms they don't own", function (done) {
+        request(app)
+            .delete('/rooms/' + chatRoom.id + '/messages/' + message.id)
+            .auth(hackerMan.email, hackerMan.password)
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
+
+    it("only accepts integers for the chat room ID", function (done) {
+        request(app)
+            .delete('/rooms/null/messages/' + message.id)
+            .auth(presenter.email, presenter.password)
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
+
+    it("only accepts integers for the message ID", function (done) {
+        request(app)
+            .delete('/rooms/' + chatRoom.id + '/messages/null')
+            .auth(presenter.email, presenter.password)
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
+
+    it("requires a chat room that exists", function (done) {
+        request(app)
+            .delete('/rooms/' + (chatRoom.id + 1) + '/messages/' + message.id)
+            .auth(presenter.email, presenter.password)
+            .expect(404)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
+
+    it("requires a message that exists", function (done) {
+        request(app)
+            .delete('/rooms/' + chatRoom.id + '/messages/' + (message.id + 1))
+            .auth(presenter.email, presenter.password)
+            .expect(404)
+            .expect('Content-Type', /json/)
+            .end(done);
+    });
 });
 
 
