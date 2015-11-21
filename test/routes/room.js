@@ -795,7 +795,7 @@ describe('POST /rooms/:room_id/close', function () {
     it('closes the chatroom specified ', function(done){
        var goodRoom = chatRoom.id;
        request(app)
-       .post('/rooms/'+ goodRoom +'/close/')
+       .post('/rooms/'+ goodRoom +'/close')
        .auth(presenter.email, presenter.password)
        .expect('{}')
        .expect('Content-Type', /json/)
@@ -814,7 +814,7 @@ describe('POST /rooms/:room_id/close', function () {
     it('requires the presenter to own the room', function(done){
         var goodRoom = chatRoom.id;
         request(app)
-       .post('/rooms/'+ goodRoom +'/close/')
+       .post('/rooms/'+ goodRoom +'/close')
        .auth(presenter2.email, presenter2.password)
        .expect(400)
        .end(done);
@@ -823,7 +823,7 @@ describe('POST /rooms/:room_id/close', function () {
     it('requires the user at least be a presenter', function(done){
        var goodRoom = chatRoom.id;
        request(app)
-       .post('/rooms/'+ goodRoom +'/close/')
+       .post('/rooms/'+ goodRoom +'/close')
        .auth(user.email, user.password)
        .expect(401,done);
     });
@@ -831,8 +831,20 @@ describe('POST /rooms/:room_id/close', function () {
     it('requires a valid room number', function(done){
         var badRoom = chatRoom.id + 1;
         request(app)
-        .post('/rooms/'+ badRoom +'/close/')
+        .post('/rooms/'+ badRoom +'/close')
         .auth(presenter.email, presenter.password)
         .expect(404,done);
+    });
+
+    it('requires the room to be open', function (done) {
+        database.query("UPDATE chat_rooms SET end_timestamp = $1 WHERE id = $2", [new Date(), chatRoom.id])
+        .then(function () {
+            request(app)
+                .post('/rooms/'+ chatRoom.id +'/close')
+                .auth(presenter.email, presenter.password)
+                .expect(400)
+                .end(done);
+        })
+        .catch(done);
     });
 });
