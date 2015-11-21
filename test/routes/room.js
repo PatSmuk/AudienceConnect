@@ -3,6 +3,7 @@ var request = require('supertest');
 var app = require('../../app');
 var database = require('../../database');
 var testUtil = require('../testUtil');
+var assert = require('assert');
 
 
 describe('GET /rooms/', function () {
@@ -197,15 +198,6 @@ describe('POST /rooms/:room_id/messages/', function () {
         verified: true,
         presenter: false
     };
-
-    var new_user = {
-        id: null,
-        email: 'user2@example.com',
-        password: 'test',
-        verified: true,
-        presenter: false
-    };
-
     var presenter = {
         id: null,
         email: 'presenter@example.com',
@@ -216,122 +208,133 @@ describe('POST /rooms/:room_id/messages/', function () {
 
     beforeEach('delete the users if they exist', function (done) {
         database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-            )
-            .then(function () {
-                done();
-            })
-            .catch(done);
+            'DELETE FROM users WHERE email IN ($1, $2)',
+            [user.email, presenter.email]
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
     });
 
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
-            .then(function (user_id) {
-                user.id = user_id;
+        .then(function (user_id) {
+            user.id = user_id;
 
-                return testUtil.insertUser(new_user);
-            })
-            .then(function (new_user_id) {
-                new_user.id = new_user_id;
+            return testUtil.insertUser(presenter);
+        })
+        .then(function (presenter_id) {
+            presenter.id = presenter_id;
 
-                return testUtil.insertUser(presenter);
-            })
-            .then(function (presenter_id) {
-                presenter.id = presenter_id;
-
-                done();
-            })
-            .catch(done);
+            done();
+        })
+        .catch(done);
     });
 
-    var invitationList_1 = {
+    var invitationList = {
         id: null,
         subject: 'Test Subject',
         presenter: null
     };
-    var invitationList_2 = {
-        id: null,
-        subject: 'Test Subject 2',
-        presenter: null
-    };
 
     beforeEach('add two invitation lists', function (done) {
-        invitationList_1.presenter = presenter.id;
-        invitationList_2.presenter = presenter.id;
+        invitationList.presenter = presenter.id;
 
-        testUtil.insertInvitationList(invitationList_1)
-            .then(function (invitationList_1_id) {
-                invitationList_1.id = invitationList_1_id;
+        testUtil.insertInvitationList(invitationList)
+        .then(function (invitationList_id) {
+            invitationList.id = invitationList_id;
 
-                return testUtil.insertInvitationList(invitationList_2);
-            })
-            .then(function (invitationList_2_id) {
-                invitationList_2.id = invitationList_2_id;
-
-                done();
-            })
-            .catch(done);
+            done();
+        })
+        .catch(done);
     });
 
-    beforeEach('add the first user to the first invitation list', function (done) {
-        testUtil.addUserToInvitationList(invitationList_1.id, user.id)
-            .then(done)
-            .catch(done);
+    beforeEach('add the user to the invitation list', function (done) {
+        testUtil.addUserToInvitationList(invitationList.id, user.id)
+        .then(done)
+        .catch(done);
     });
 
-    var chatRoom_1 = {
+    var chatRoom = {
         room_name: 'Cat Room',
         invitation_list: null
     };
 
-    beforeEach('add two chat rooms', function (done) {
-        chatRoom_1.invitation_list = invitationList_1.id;
-        testUtil.insertChatRoom(chatRoom_1)
-            .then(function (results) {
-                return chatRoom_1.id = results;
-            })
-            .then(function () {
-                done();
-            })
-            .catch(done);
+    beforeEach('add a chat rooms', function (done) {
+        chatRoom.invitation_list = invitationList.id;
+        testUtil.insertChatRoom(chatRoom)
+        .then(function (results) {
+            return chatRoom.id = results;
+        })
+        .then(function () {
+            done();
+        })
+        .catch(done);
     });
 
     var good_message_text = 'LMAOFUCK';
 
-    it('adds a messager to a chat room', function (done) {
-        var goodChatRoom = chatRoom_1.id;
-        request(app)
-            .post('/rooms/' + goodChatRoom + '/messages/')
+    it('allows room owners to send messages', function (done) {
+
+        database.query('DELETE FROM messages WHERE room = $1', [chatRoom.id])
+        .then(function () {
+
+            request(app)
+            .post('/rooms/' + chatRoom.id + '/messages/')
+            .auth(user.email, user.password)
+            .send({ message: good_message_text })
+            .expect(200)
+            .end(function (err) {
+                if (err) return done(err);
+
+                database.query("SELECT * FROM messages WHERE room = $1", [chatRoom.id])
+                .then(function (results) {
+                    assert.equal(results.length, 1, 'Expected 1 message in the chat room');
+                    done();
+                });
+            });
+        })
+        .catch(done);
+    });
+
+    it('allows audience members to send messages', function (done) {
+
+        database.query('DELETE FROM messages WHERE room = $1', [chatRoom.id])
+        .then(function () {
+
+            request(app)
+            .post('/rooms/' + chatRoom.id + '/messages/')
             .auth(presenter.email, presenter.password)
             .send({ message: good_message_text })
             .expect(200)
-            .expect(function (result){
-                database.query("SELECT * FROM messages WHERE message_text = $1", [good_message_text]).then(function (results){
-                    if(results.length > 0){
-                        return "The message has been added";
-                    }
-                })
-            })
-            .end(done);
+            .end(function (err) {
+                if (err) return done(err);
+
+                database.query("SELECT * FROM messages WHERE room = $1", [chatRoom.id])
+                .then(function (results) {
+                    assert.equal(results.length, 1, 'Expected 1 message in the chat room');
+                    done();
+                });
+            });
+        })
+        .catch(done);
     });
 
     it('requires valid credentials', function (done) {
-        var goodChatRoom = chatRoom_1.id;
         request(app)
-            .post('/rooms/' + goodChatRoom + '/messages/')
+            .post('/rooms/' + chatRoom.id + '/messages/')
             .expect(401, done);
     });
 
     it('requires a message', function (done) {
-        var goodChatRoom = chatRoom_1.id;
         request(app)
-            .post('/rooms/' + goodChatRoom + '/messages/')
+            .post('/rooms/' + chatRoom.id + '/messages/')
             .auth(presenter.email, presenter.password)
             .expect(400, done);
     });
 
-    it('user is not in an actual room', function (done) {
+    it('ensures that the room exists', function (done) {
         request(app)
             .post('/room/2/messages/')
             .auth(presenter.email, presenter.password)
