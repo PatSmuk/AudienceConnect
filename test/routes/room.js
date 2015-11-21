@@ -1,4 +1,5 @@
 /* global describe, beforeEach, it */
+
 var request = require('supertest');
 var app = require('../../app');
 var database = require('../../database');
