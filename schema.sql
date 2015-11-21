@@ -49,7 +49,8 @@ CREATE TABLE messages (
     sender integer NOT NULL,
     message_timestamp timestamp with time zone DEFAULT now() NOT NULL,
     room integer NOT NULL,
-    message_text text NOT NULL
+    message_text text NOT NULL,
+    censored boolean NOT NULL DEFAULT false
 );
 
 
@@ -168,7 +169,7 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-    
+
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_student_id_key UNIQUE (student_id);
 
