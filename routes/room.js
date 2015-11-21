@@ -71,6 +71,10 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
  */
 router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
 
+    var room = req.params.room_id;
+    var message = req.body.message;
+    var user_id = req.user.id;
+
     req.checkBody('message', 'Message is missing').notEmpty();
 
     var errors = req.validationErrors();
@@ -78,19 +82,30 @@ router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req
         return res.status(400).json({ errors: errors });
     }
 
-    var room = req.params.room_id;
-    var message = req.body.message;
-    var user_id = req.user.id;
-
     database.query(
-        'INSERT INTO messages (sender, room, message_text) VALUES ($1, $2, $3)',
-        [user_id, room, message]
-    )
-    .then(function () {
-        return res.send();
-    })
-    .catch(next);
+        'SELECT * FROM chat_rooms ' +
+        'WHERE id = $1',
+        [room]
+        )
+        .then(function (results) {
+            if (results.length < 1) {
+                return res.status(404).json({ errors: [{ param: 'room', msg: 'Chat room does not exist', value: room }] });
+            }
+            database.query(
+                'INSERT INTO messages (sender, room, message_text) VALUES ($1, $2, $3)',
+                [user_id, room, message]
+                )
+                .then(function () {
+                    return res.send();
+                });
+        })
+
+        .catch(next);
 });
+
+
+
+
 
 /*
  * DELETE /rooms/:room_id/messages/:message_id/

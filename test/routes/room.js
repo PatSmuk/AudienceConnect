@@ -336,8 +336,9 @@ describe('POST /rooms/:room_id/messages/', function () {
 
     it('ensures that the room exists', function (done) {
         request(app)
-            .post('/room/2/messages/')
+            .post('/rooms/2/messages/')
             .auth(presenter.email, presenter.password)
+            .send({message: good_message_text})
             .expect(404, done);
     });
 });
