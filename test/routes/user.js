@@ -31,60 +31,54 @@ describe('GET /users/:user_id/', function () {
         database.query(
             'DELETE FROM users WHERE email IN ($1, $2, $3)',
             [user.email, new_user.email, presenter.email]
-            )
-            .then(function () {
-                done();
-            })
-            .catch(done);
+        )
+        .then(function () {
+            done();
+        })
+        .catch(done);
     });
 
 
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
-            .then(function (user_id) {
-                user.id = user_id;
+        .then(function (user_id) {
+            user.id = user_id;
 
-                return testUtil.insertUser(new_user);
-            })
-            .then(function (new_user_id) {
-                new_user.id = new_user_id;
+            return testUtil.insertUser(new_user);
+        })
+        .then(function (new_user_id) {
+            new_user.id = new_user_id;
 
-                return testUtil.insertUser(presenter);
-            })
-            .then(function (presenter_id) {
-                presenter.id = presenter_id;
+            return testUtil.insertUser(presenter);
+        })
+        .then(function (presenter_id) {
+            presenter.id = presenter_id;
 
-                done();
-            })
-            .catch(done);
+            done();
+        })
+        .catch(done);
     });
-    
 
-    //////////////TEST 3 START HERE /////////////////
-    console.log("Tests commencing... standby for results");
-    
-    
     //no auth check if user exists
-    it('no auth user exists', function (done) {
+    it('requires authentication', function (done) {
         var usr = user.id;
         request(app)
             .get('/users/' + usr)
             .expect('Content-Type', /json/)
             .expect(401, done)
     });
-       
+
     //this tests if the fucking user exists
-    it('user exists', function (done) {
-        var usr = user.id;
+    it('returns information about a user', function (done) {
         request(app)
-            .get('/users/' + usr)
+            .get('/users/' + user.id)
             .auth(user.email, user.password)
             .expect('Content-Type', /json/)
             .expect(200, done)
     });
-    
+
     //this tests if the user doesnt exist
-    it('user doesnt exist in db', function (done) {
+    it("returns a 404 if the user doesn't exist", function (done) {
         var usr = 9999;
         request(app)
             .get('/users/' + usr)
