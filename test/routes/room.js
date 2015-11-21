@@ -443,11 +443,18 @@ describe('POST /rooms/:room_id/messages/', function () {
         verified: true,
         presenter: true
     };
+    var hackerMan = {
+        id: null,
+        email: 'greatest_hacker@example.com',
+        password: 'C64',
+        verified: true,
+        presenter: false
+    }
 
     beforeEach('delete the users if they exist', function (done) {
         database.query(
-            'DELETE FROM users WHERE email IN ($1, $2)',
-            [user.email, presenter.email]
+            'DELETE FROM users WHERE email IN ($1, $2, $3)',
+            [user.email, presenter.email, hackerMan.email]
         )
         .then(function () {
             done();
@@ -459,12 +466,14 @@ describe('POST /rooms/:room_id/messages/', function () {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
-
             return testUtil.insertUser(presenter);
         })
         .then(function (presenter_id) {
             presenter.id = presenter_id;
-
+            return testUtil.insertUser(hackerMan);
+        })
+        .then(function (hacker_id) {
+            hackerMan.id = hacker_id;
             done();
         })
         .catch(done);
@@ -576,7 +585,15 @@ describe('POST /rooms/:room_id/messages/', function () {
         request(app)
             .post('/rooms/2/messages/')
             .auth(presenter.email, presenter.password)
-            .send({message: good_message_text})
+            .send({ message: good_message_text })
+            .expect(404, done);
+    });
+
+    it('requires the user to have access to the room', function (done) {
+        request(app)
+            .post('/rooms/' + chatRoom.id + '/messages/')
+            .auth(hackerMan.email, hackerMan.password)
+            .send({ message: 'HACKED LOL' })
             .expect(404, done);
     });
 });

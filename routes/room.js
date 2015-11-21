@@ -139,7 +139,7 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
  */
 router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
 
-    var room = req.params.room_id;
+    var room = parseInt(req.params.room_id, 10);
     var message = req.body.message;
     var user_id = req.user.id;
 
@@ -151,29 +151,33 @@ router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req
     }
 
     database.query(
-        'SELECT * FROM chat_rooms ' +
-        'WHERE id = $1',
-        [room]
+        'SELECT * FROM chat_rooms           ' +
+        'WHERE id = $1                      ' +
+        'AND invitation_list IN (           ' +
+        '     SELECT id                     ' +
+        '     FROM invitation_lists         ' +
+        '     WHERE presenter = $2          ' +
+        '     UNION                         ' +
+        '     SELECT invitation_list        ' +
+        '     FROM invitation_list_members  ' +
+        '     WHERE audience_member = $2    ' +
+        ' )                                 ',
+        [room, user_id]
+    )
+    .then(function (results) {
+        if (results.length < 1) {
+            return res.status(404).json({ errors: [{ param: 'room', msg: 'Chat room does not exist', value: room }] });
+        }
+        return database.query(
+            'INSERT INTO messages (sender, room, message_text) VALUES ($1, $2, $3)',
+            [user_id, room, message]
         )
-        .then(function (results) {
-            if (results.length < 1) {
-                return res.status(404).json({ errors: [{ param: 'room', msg: 'Chat room does not exist', value: room }] });
-            }
-            database.query(
-                'INSERT INTO messages (sender, room, message_text) VALUES ($1, $2, $3)',
-                [user_id, room, message]
-                )
-                .then(function () {
-                    return res.send();
-                });
-        })
-
-        .catch(next);
+        .then(function () {
+            return res.send({});
+        });
+    })
+    .catch(next);
 });
-
-
-
-
 
 /*
  * DELETE /rooms/:room_id/messages/:message_id/
@@ -198,51 +202,51 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
     database.query(
         'SELECT id FROM chat_rooms WHERE id = $1',
         [room_id]
+    )
+    .then(function (results) {
+        if (results < 1) {
+            return res.status(404).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+        }
+        return database.query(
+            'SELECT id FROM chat_rooms ' +
+            'WHERE invitation_list ' +
+            'IN (SELECT id FROM invitation_lists ' +
+            'WHERE presenter = $1) AND id = $2',
+            [id, room_id]
         )
         .then(function (results) {
-            if (results < 1) {
-                return res.status(404).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+            if (results.length >= 1) {
+                total = 1;
             }
             return database.query(
-                'SELECT id FROM chat_rooms ' +
+                'SELECT id ' +
+                'FROM chat_rooms ' +
                 'WHERE invitation_list ' +
-                'IN (SELECT id FROM invitation_lists ' +
-                'WHERE presenter = $1) AND id = $2',
+                'IN (' +
+                '    SELECT invitation_list ' +
+                '    FROM invitation_list_members ' +
+                '    WHERE audience_member = $1) ' +
+                'AND id = $2',
                 [id, room_id]
+            )
+            .then(function (results) {
+                if (results.length + total < 1) {
+                    return res.status(404).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+                }
+
+                return database.query(
+                    'SELECT (id, start_timestamp, end_timestamp, room, question) ' +
+                    'FROM polls ' +
+                    'WHERE room = $1',
+                    [room_id]
                 )
                 .then(function (results) {
-                    if (results.length >= 1) {
-                        total = 1;    
-                    }
-                    return database.query(
-                        'SELECT id ' +
-                        'FROM chat_rooms ' +
-                        'WHERE invitation_list ' +
-                        'IN (' +
-                        '    SELECT invitation_list ' +
-                        '    FROM invitation_list_members ' +
-                        '    WHERE audience_member = $1) ' +
-                        'AND id = $2',
-                        [id, room_id]
-                        )
-                        .then(function (results) {
-                            if (results+total < 1) {
-                                return res.status(404).json({ errors: [{ param: 'room_id', msg: 'You do not belong to this room', value: room_id }] });
-                            }
-
-                            database.query(
-                                'SELECT (id, start_timestamp, end_timestamp, room, question) ' +
-                                'FROM polls ' +
-                                'WHERE room = $1',
-                                [room_id]
-                                )
-                                .then(function (results) {
-                                    return res.send(results);
-                                });
-                        });
-                })
-        })
-        .catch(next);
+                    return res.send(results);
+                });
+            });
+        });
+    })
+    .catch(next);
 });
 
 /*
