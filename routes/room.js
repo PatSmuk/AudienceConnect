@@ -24,11 +24,11 @@ router.get('/', auth.requireLevel('logged_in'), function (req, res, next) {
         "     WHERE presenter = $1                                              " +
         " )                                                                     ",
         [id]
-        )
-        .then(function (results) {
-            return res.send(results);
-        })
-        .catch(next);
+    )
+    .then(function (results) {
+        return res.send(results);
+    })
+    .catch(next);
 });
 
 /*
@@ -128,8 +128,42 @@ router.delete('/:room_id/', auth.requireLevel('presenter'), function (req, res, 
  * Gets an array of all messages sent in the room identified by :room_id.
  */
 router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
-    var room_id = req.params.room_id;
-    res.send('Not yet implemented');
+    var room_id = parseInt(req.params.room_id, 10);
+    var user_id = req.user.id;
+
+    //check if the room exists
+    database.query(
+        ' SELECT id ' +
+        ' FROM chat_rooms ' +
+        ' WHERE id = $1 ' +
+        ' AND invitation_list IN (' +
+        '     SELECT id ' +
+        '     FROM invitation_lists ' +
+        '     WHERE presenter = $2 ' +
+        '     UNION ' +
+        '     SELECT invitation_list ' +
+        '     FROM invitation_list_members ' +
+        '     WHERE audience_member = $2 ' +
+        ' )',
+        [room_id, user_id]
+    )
+    .then(function(results){
+        if (results.length != 1){
+            return res.status(404).json({ error: 'Room '+room_id+' not found' });
+        }
+
+        //get the message
+        return database.query(
+            ' SELECT id, sender, message_timestamp, message_text '+
+            ' FROM messages ' +
+            ' WHERE room = $1',
+            [room_id]
+        )
+        .then(function (results) {
+            return res.send(results); //send the results of the query
+        });
+    })
+    .catch(next);
 });
 
 /*
