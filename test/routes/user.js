@@ -12,48 +12,11 @@ describe('GET /users/:user_id/', function () {
         verified: true,
         presenter: false
     };
-    var new_user = {
-        id: null,
-        email: 'user3@example.com',
-        password: 'test',
-        verified: true,
-        presenter: false
-    };
-    var presenter = {
-        id: null,
-        email: 'presenter@example.com',
-        password: 'test',
-        verified: true,
-        presenter: true
-    };
-
-    beforeEach('delete the users if they exist!!!!!!!!', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
-
 
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
-
-            return testUtil.insertUser(new_user);
-        })
-        .then(function (new_user_id) {
-            new_user.id = new_user_id;
-
-            return testUtil.insertUser(presenter);
-        })
-        .then(function (presenter_id) {
-            presenter.id = presenter_id;
-
             done();
         })
         .catch(done);

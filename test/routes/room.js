@@ -31,17 +31,6 @@ describe('GET /rooms/', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-            )
-            .then(function () {
-                done();
-            })
-            .catch(done);
-    });
-
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
         .then(function (user_id) {
@@ -171,8 +160,7 @@ describe('GET /rooms/', function () {
                     return 'missing rooms that we own';
             })
             .end(done);
-    })
-
+    });
 });
 
 
@@ -192,17 +180,6 @@ describe('POST /rooms/', function () {
         presenter: true
 
     };
-
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2)',
-            [user.email, presenter.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
 
     var invitationList = {
         id: null,
@@ -268,7 +245,7 @@ describe('POST /rooms/', function () {
             .post('/rooms/')
             .auth(user.email, user.password)
             .send({ roomName: goodRoomName, invitationList: invitationList.id })
-            .expect(401, done);
+            .expect(403, done);
     });
 
     it('requires a room name', function (done) {
@@ -313,17 +290,7 @@ describe('DELETE /rooms/:room_id/', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, presenter.email, presenter2.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
-     beforeEach('add some users', function (done) {
+    beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
@@ -410,7 +377,7 @@ describe('DELETE /rooms/:room_id/', function () {
        request(app)
        .delete('/rooms/'+ goodRoom +'/')
        .auth(user.email, user.password)
-       .expect(401,done);
+       .expect(403,done);
     });
 
     it('requires a valid room number', function(done){
@@ -452,17 +419,6 @@ describe('GET /rooms/:room_id/messages/', function () {
         verified: true,
         presenter: true
     };
-
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
 
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
@@ -671,17 +627,6 @@ describe('POST /rooms/:room_id/messages/', function () {
         verified: true,
         presenter: false
     }
-
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, presenter.email, hackerMan.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
 
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
@@ -1041,17 +986,6 @@ describe('GET /rooms/:room_id/polls', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
-
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
             .then(function (user_id) {
@@ -1261,7 +1195,7 @@ describe('POST /rooms/:room_id/polls', function () {
         request(app)
         .post('/rooms/'+chatRoom.id+'/polls')
         .auth(user.email, user.password)
-        .expect(401, done);
+        .expect(403, done);
     });
 
     it("requires a valid room", function (done) {
@@ -1305,17 +1239,7 @@ describe('POST /rooms/:room_id/close', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, presenter.email, presenter2.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
-     beforeEach('add some users', function (done) {
+    beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
@@ -1402,7 +1326,7 @@ describe('POST /rooms/:room_id/close', function () {
        request(app)
        .post('/rooms/'+ goodRoom +'/close')
        .auth(user.email, user.password)
-       .expect(401,done);
+       .expect(403,done);
     });
 
     it('requires a valid room number', function(done){

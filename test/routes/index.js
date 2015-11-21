@@ -10,12 +10,6 @@ describe('POST /register', function () {
     var goodEmail = 'test@example.com';
     var goodPassword = 'test';
 
-    beforeEach("ensure that the test email isn't taken", function (done) {
-        database.query('DELETE FROM users WHERE email = $1', [goodEmail])
-        .then(function () { done(); })
-        .catch(done);
-    });
-
     it('allows people to create accounts', function (done) {
         request(app)
             .post('/register')

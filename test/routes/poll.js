@@ -243,17 +243,6 @@ describe('POST /polls/:poll_id/close', function () {
         presenter: true
     };
 
-    beforeEach('delete the users if they exist!', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-        )
-        .then(function () {
-            done();
-        })
-        .catch(done);
-    });
-
     beforeEach('add some users', function (done) {
         testUtil.insertUser(user)
         .then(function (user_id) {
@@ -396,7 +385,7 @@ describe('POST /polls/:poll_id/close', function () {
             .post('/polls/' + poll.id + '/close')
             .auth(user.email, user.password)
             .expect('Content-Type', /json/)
-            .expect(401, done);
+            .expect(403, done);
     });
 
     //poll id DNE motherfucker
