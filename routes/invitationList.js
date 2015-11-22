@@ -40,7 +40,9 @@ router.get('/', auth.requireLevel('presenter'), function (req, res, next) {
         'SELECT id, subject FROM invitation_lists WHERE presenter = $1',
         [req.user.id]
     )
-    .then(res.send.bind(res))
+    .then(function (results) {
+        res.json(results);
+    })
     .catch(next);
 });
 
@@ -107,8 +109,29 @@ router.get('/:list_id/', [auth.requireLevel('presenter'), handle_list_id], funct
  */
 router.post('/:list_id/', [auth.requireLevel('presenter'), handle_list_id], function (req, res, next) {
     var list = req.invitationList;
-    var user_id = req.params.user_id;
-    res.send('Not yet implemented');
+
+    req.checkBody('user_id', 'User ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
+    var user_id = req.body.user_id;
+
+    // Ensure that they aren't already on the list.
+    database.query('SELECT * FROM invitation_list_members WHERE invitation_list = $1 AND audience_member = $2', [list.id, user_id])
+    .then(function (results) {
+        if (results.length > 0) {
+            return res.status(400).json({ errors: [{ param: 'user_id', msg: 'User is already on the invitation list', value: user_id }] })
+        }
+
+        return database.query('INSERT INTO invitation_list_members (invitation_list, audience_member) VALUES ($1, $2)', [list.id, user_id])
+        .then(function () {
+            return res.json({});
+        })
+    })
+    .catch(next);
 });
 
 /*
@@ -119,8 +142,29 @@ router.post('/:list_id/', [auth.requireLevel('presenter'), handle_list_id], func
  */
 router.delete('/:list_id/:user_id/', [auth.requireLevel('presenter'), handle_list_id], function (req, res, next) {
     var list = req.invitationList;
+
+    req.checkParams('user_id', 'User ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
     var user_id = req.params.user_id;
-    res.send('Not yet implemented');
+
+    // Ensure that they are on the list.
+    database.query('SELECT * FROM invitation_list_members WHERE invitation_list = $1 AND audience_member = $2', [list.id, user_id])
+    .then(function (results) {
+        if (results.length == 0) {
+            return res.status(404).json({ errors: [{ param: 'user_id', msg: 'User not found in invitation list', value: user_id }] })
+        }
+
+        return database.query('DELETE FROM invitation_list_members WHERE invitation_list = $1 AND audience_member = $2', [list.id, user_id])
+        .then(function () {
+            return res.json({});
+        });
+    })
+    .catch(next);
 });
 
 
