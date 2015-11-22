@@ -10,12 +10,20 @@ describe('POST /register', function () {
     var goodEmail = 'test@example.com';
     var goodPassword = 'test';
 
+    beforeEach('ensure the email is not taken', function (done) {
+        database.query('DELETE FROM users WHERE email = $1', [goodEmail])
+        .then(function () {
+            done();
+        })
+        .catch(done);
+    })
+
     it('allows people to create accounts', function (done) {
         request(app)
-            .post('/register')
-            .send({ email: goodEmail, password: goodPassword })
-            .expect('Content-Type', /json/)
-            .expect(200, done);
+        .post('/register')
+        .send({ email: goodEmail, password: goodPassword })
+        .expect('Content-Type', /json/)
+        .expect(200, done);
     });
 
     it('requires an email address', function (done) {
