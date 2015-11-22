@@ -138,47 +138,47 @@ describe('POST /polls/:poll_id/vote', function () {
     //testing vote no auth
     it('requires authentication', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .send({ answer: ans.id })
-            .expect('Content-Type', /json/)
-            .expect(401, done)
+        .post('/polls/' + poll.id + '/vote')
+        .send({ answer: ans.id })
+        .expect('Content-Type', /json/)
+        .expect(401, done)
     });
 
     it("requires the poll to exist", function (done) {
         request(app)
-            .post('/polls/' + (poll.id + 1) + '/vote')
-            .auth(user.email, user.password)
-            .send({ answer: ans.id })
-            .expect('Content-Type', /json/)
-            .expect(404, done)
+        .post('/polls/' + (poll.id + 1) + '/vote')
+        .auth(user.email, user.password)
+        .send({ answer: ans.id })
+        .expect('Content-Type', /json/)
+        .expect(404, done)
     });
 
     //this tests the fucking voting system
     it('allows audience members to vote', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .auth(user.email, user.password)
-            .send({ answer: ans.id })
-            .expect('Content-Type', /json/)
-            .expect(200, done)
+        .post('/polls/' + poll.id + '/vote')
+        .auth(user.email, user.password)
+        .send({ answer: ans.id })
+        .expect('Content-Type', /json/)
+        .expect(200, done)
     });
 
     it('allows presenters to vote', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .auth(presenter.email, presenter.password)
-            .send({ answer: ans.id })
-            .expect('Content-Type', /json/)
-            .expect(200, done)
+        .post('/polls/' + poll.id + '/vote')
+        .auth(presenter.email, presenter.password)
+        .send({ answer: ans.id })
+        .expect('Content-Type', /json/)
+        .expect(200, done)
     });
 
     it("doesn't allow uninvited people to vote", function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .auth(new_user.email, new_user.password)
-            .send({ answer: ans.id })
-            .expect('Content-Type', /json/)
-            .expect(404, done)
+        .post('/polls/' + poll.id + '/vote')
+        .auth(new_user.email, new_user.password)
+        .send({ answer: ans.id })
+        .expect('Content-Type', /json/)
+        .expect(404, done)
     });
 
     //this tests the fucking duplicate votes
@@ -186,12 +186,12 @@ describe('POST /polls/:poll_id/vote', function () {
         database.query("INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)", [poll.id, user.id, ans.id])
         .then(function () {
             request(app)
-                .post('/polls/' + poll.id + '/vote')
-                .auth(user.email, user.password)
-                .send({ answer: ans.id })
-                .expect('Content-Type', /json/)
-                .expect(400)
-                .end(done);
+            .post('/polls/' + poll.id + '/vote')
+            .auth(user.email, user.password)
+            .send({ answer: ans.id })
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .end(done);
         })
         .catch(done);
     });
@@ -199,21 +199,21 @@ describe('POST /polls/:poll_id/vote', function () {
     //this checks if the body is undefined
     it('requires an answer in the request body', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .auth(user.email, user.password)
-            .send({})
-            .expect('Content-Type', /json/)
-            .expect(400, done)
+        .post('/polls/' + poll.id + '/vote')
+        .auth(user.email, user.password)
+        .send({})
+        .expect('Content-Type', /json/)
+        .expect(400, done)
     });
 
     it("doesn't allow voting in closed polls", function (done) {
         database.query('UPDATE polls SET end_timestamp = $1 WHERE id = $2', [new Date(), poll.id])
         .then(function () {
             request(app)
-                .post('/polls/' + poll.id + '/vote')
-                .auth(user.email, user.password)
-                .expect('Content-Type', /json/)
-                .expect(400, done);
+            .post('/polls/' + poll.id + '/vote')
+            .auth(user.email, user.password)
+            .expect('Content-Type', /json/)
+            .expect(400, done);
         })
         .catch(done);
     });
@@ -247,17 +247,14 @@ describe('POST /polls/:poll_id/close', function () {
         testUtil.insertUser(user)
         .then(function (user_id) {
             user.id = user_id;
-
             return testUtil.insertUser(new_user);
         })
         .then(function (new_user_id) {
             new_user.id = new_user_id;
-
             return testUtil.insertUser(presenter);
         })
         .then(function (presenter_id) {
             presenter.id = presenter_id;
-
             done();
         })
         .catch(done);
@@ -282,8 +279,8 @@ describe('POST /polls/:poll_id/close', function () {
 
     beforeEach('add the first user to the first invitation list', function (done) {
         testUtil.addUserToInvitationList(invitationList_1.id, user.id)
-            .then(done)
-            .catch(done);
+        .then(done)
+        .catch(done);
     });
 
     var chatRoom_1 = {
@@ -335,29 +332,29 @@ describe('POST /polls/:poll_id/close', function () {
     //testing no auth close
     it('requires authentication', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/close')
-            .expect('Content-Type', /json/)
-            .expect(401, done)
+        .post('/polls/' + poll.id + '/close')
+        .expect('Content-Type', /json/)
+        .expect(401, done)
     });
 
     //close the fucking vote if you are presenter
     it('allows the presenter to close their polls', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/close')
-            .auth(presenter.email, presenter.password)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function (err) {
-                if (err) done(err);
+        .post('/polls/' + poll.id + '/close')
+        .auth(presenter.email, presenter.password)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function (err) {
+            if (err) done(err);
 
-                database.query("SELECT end_timestamp FROM polls WHERE id = $1", [poll.id])
-                .then(function (results) {
-                    if (results[0].end_timestamp === null)
-                        return "The poll didn't get closed, end_timestamp is still NULL";
-                    done();
-                })
-                .catch(done);
-            });
+            database.query("SELECT end_timestamp FROM polls WHERE id = $1", [poll.id])
+            .then(function (results) {
+                if (results[0].end_timestamp === null)
+                    return "The poll didn't get closed, end_timestamp is still NULL";
+                done();
+            })
+            .catch(done);
+        });
     });
 
     it('requires that you own the poll', function (done) {
@@ -371,40 +368,40 @@ describe('POST /polls/:poll_id/close', function () {
         testUtil.insertUser(presenter_2)
         .then(function () {
             request(app)
-                .post('/polls/' + poll.id + '/close')
-                .auth(presenter_2.email, presenter_2.password)
-                .expect('Content-Type', /json/)
-                .expect(404)
-                .end(done);
+            .post('/polls/' + poll.id + '/close')
+            .auth(presenter_2.email, presenter_2.password)
+            .expect('Content-Type', /json/)
+            .expect(404)
+            .end(done);
         });
     });
 
     //close the fucking vote if you are NOT presenter
     it('requires you to be a presenter', function (done) {
         request(app)
-            .post('/polls/' + poll.id + '/close')
-            .auth(user.email, user.password)
-            .expect('Content-Type', /json/)
-            .expect(403, done);
+        .post('/polls/' + poll.id + '/close')
+        .auth(user.email, user.password)
+        .expect('Content-Type', /json/)
+        .expect(403, done);
     });
 
     //poll id DNE motherfucker
     it('requires the poll to exist', function (done) {
         request(app)
-            .post('/polls/' + (poll.id + 1) + '/close')
-            .auth(presenter.email, presenter.password)
-            .expect('Content-Type', /json/)
-            .expect(404, done);
+        .post('/polls/' + (poll.id + 1) + '/close')
+        .auth(presenter.email, presenter.password)
+        .expect('Content-Type', /json/)
+        .expect(404, done);
     });
 
     it("doesn't allow closing the same poll twice", function (done) {
         database.query('UPDATE polls SET end_timestamp = $1 WHERE id = $2', [new Date(), poll.id])
         .then(function () {
             request(app)
-                .post('/polls/' + poll.id + '/close')
-                .auth(presenter.email, presenter.password)
-                .expect('Content-Type', /json/)
-                .expect(400, done);
+            .post('/polls/' + poll.id + '/close')
+            .auth(presenter.email, presenter.password)
+            .expect('Content-Type', /json/)
+            .expect(400, done);
         })
         .catch(done);
     });

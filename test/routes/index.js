@@ -5,6 +5,17 @@ var app = require('../../app');
 var database = require('../../database');
 
 
+describe('GET /', function () {
+    it('returns good old-fashioned HTML', function (done) {
+        request(app)
+        .get('/')
+        .expect(200)
+        .expect('Content-Type', /html/)
+        .end(done);
+    });
+});
+
+
 describe('POST /register', function () {
 
     var goodEmail = 'test@example.com';
@@ -28,18 +39,18 @@ describe('POST /register', function () {
 
     it('requires an email address', function (done) {
         request(app)
-            .post('/register')
-            .send({ password: goodPassword })
-            .expect('Content-Type', /json/)
-            .expect(400, done);
+        .post('/register')
+        .send({ password: goodPassword })
+        .expect('Content-Type', /json/)
+        .expect(400, done);
     });
 
     it('requires a password', function (done) {
         request(app)
-            .post('/register')
-            .send({ email: goodEmail })
-            .expect('Content-Type', /json/)
-            .expect(400, done);
+        .post('/register')
+        .send({ email: goodEmail })
+        .expect('Content-Type', /json/)
+        .expect(400, done);
     });
 
     var badEmails = ['test', 'test@', '@example.com', '@example', 'testexample.com', 'test@example'];
@@ -47,18 +58,18 @@ describe('POST /register', function () {
     badEmails.forEach(function (badEmail) {
         it("doesn't accept \"" + badEmail + "\" as an email address", function (done) {
             request(app)
-                .post('/register')
-                .send({ email: badEmail, password: goodPassword })
-                .expect('Content-Type', /json/)
-                .expect(400, done);
+            .post('/register')
+            .send({ email: badEmail, password: goodPassword })
+            .expect('Content-Type', /json/)
+            .expect(400, done);
         });
     });
 
     it("doesn't accept a password over 32 characters long", function (done) {
         request(app)
-            .post('/register')
-            .send({ email: goodEmail, password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
-            .expect('Content-Type', /json/)
-            .expect(400, done);
+        .post('/register')
+        .send({ email: goodEmail, password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+        .expect('Content-Type', /json/)
+        .expect(400, done);
     });
 });

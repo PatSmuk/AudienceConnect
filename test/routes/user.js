@@ -26,27 +26,27 @@ describe('GET /users/:user_id/', function () {
     it('requires authentication', function (done) {
         var usr = user.id;
         request(app)
-            .get('/users/' + usr)
-            .expect('Content-Type', /json/)
-            .expect(401, done)
+        .get('/users/' + usr)
+        .expect('Content-Type', /json/)
+        .expect(401, done)
     });
 
     //this tests if the fucking user exists
     it('returns information about a user', function (done) {
         request(app)
-            .get('/users/' + user.id)
-            .auth(user.email, user.password)
-            .expect('Content-Type', /json/)
-            .expect(200, done)
+        .get('/users/' + user.id)
+        .auth(user.email, user.password)
+        .expect('Content-Type', /json/)
+        .expect(200, done)
     });
 
     //this tests if the user doesnt exist
     it("returns a 404 if the user doesn't exist", function (done) {
         var usr = 9999;
         request(app)
-            .get('/users/' + usr)
-            .auth(user.email, user.password)
-            .expect('Content-Type', /json/)
-            .expect(404, done)
+        .get('/users/' + usr)
+        .auth(user.email, user.password)
+        .expect('Content-Type', /json/)
+        .expect(404, done)
     });
 });

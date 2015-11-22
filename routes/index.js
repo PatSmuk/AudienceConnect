@@ -14,13 +14,13 @@ var auth = require('../auth');
  *
  * Send the web app to the user.
  */
-router.get('/', function(req, res) {
+router.get('/', function (req, res) {
     res.render('index', { title: 'Express' });
 });
 
 /*
  * POST /register
- * 
+ *
  * Registers a new user account.
  *
  * Parameters:
@@ -32,12 +32,12 @@ router.post('/register', function (req, res, next) {
     req.checkBody('email', 'Email address is invalid').isEmail();
     req.checkBody('password', 'Password is missing').notEmpty();
     req.checkBody('password', 'Password must be between 1 and 32 characters long').isLength(1, 32);
-    
+
     var errors = req.validationErrors();
     if (errors) {
         return res.status(400).json({errors: errors});
     }
-    
+
     var email = req.body.email;
     var password = req.body.password;
 
@@ -45,7 +45,7 @@ router.post('/register', function (req, res, next) {
         if (results.length > 0) {
             return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
         }
-        
+
         auth.hashPassword(password).then(function (hash) {
             return database.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash])
         })

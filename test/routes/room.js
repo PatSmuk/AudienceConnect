@@ -344,7 +344,7 @@ describe('DELETE /rooms/:room_id/', function () {
         .catch(done);
     });
 
-    it('deletes the chatroom specified ', function(done){
+    it('deletes the chatroom specified ', function (done) {
        var goodRoom = chatRoom.id;
        request(app)
        .delete('/rooms/'+ goodRoom +'/')
@@ -363,7 +363,7 @@ describe('DELETE /rooms/:room_id/', function () {
        });
     });
 
-    it('requires the presenter to own the room', function(done){
+    it('requires the presenter to own the room', function (done) {
         var goodRoom = chatRoom.id;
         request(app)
        .delete('/rooms/'+ goodRoom +'/')
@@ -372,7 +372,7 @@ describe('DELETE /rooms/:room_id/', function () {
        .end(done);
     });
 
-    it('requires the user at least be a presenter', function(done){
+    it('requires the user at least be a presenter', function (done) {
        var goodRoom = chatRoom.id;
        request(app)
        .delete('/rooms/'+ goodRoom +'/')
@@ -380,7 +380,7 @@ describe('DELETE /rooms/:room_id/', function () {
        .expect(403,done);
     });
 
-    it('requires a valid room number', function(done){
+    it('requires a valid room number', function (done) {
         var badRoom = chatRoom.id + 1;
         request(app)
         .delete('/rooms/'+ badRoom +'/')
@@ -436,7 +436,7 @@ describe('GET /rooms/:room_id/messages/', function () {
             presenter.id = presenter_id;
             return testUtil.insertUser(user3)
         })
-        .then(function(user3_id){
+        .then(function (user3_id) {
             user3.id = user3_id;
             done();
         })
@@ -527,7 +527,7 @@ describe('GET /rooms/:room_id/messages/', function () {
         room: null,
         message_text: "Message 2"
     };
-    beforeEach('add three messages to the first room ', function(done){
+    beforeEach('add three messages to the first room ', function (done) {
         message1.sender = user.id;
         message1.room = chatRoom_1.id;
         message2.sender = user.id;
@@ -537,13 +537,13 @@ describe('GET /rooms/:room_id/messages/', function () {
         testUtil.insertMessage(message1);
         testUtil.insertMessage(message2);
         testUtil.insertMessage(message3)
-        .then(function(){
+        .then(function () {
             done();
         })
         .catch(done);
     });
 
-    it("allows audience members to see the room's messages", function(done){
+    it("allows audience members to see the room's messages", function (done) {
         request(app)
         .get('/rooms/' + chatRoom_1.id + '/messages/')
         .auth(user.email, user.password)
@@ -556,7 +556,7 @@ describe('GET /rooms/:room_id/messages/', function () {
         .end(done);
     });
 
-    it("allows the room's owner to see the room's messages", function(done){
+    it("allows the room's owner to see the room's messages", function (done) {
         request(app)
         .get('/rooms/' + chatRoom_1.id + '/messages/')
         .auth(presenter.email, presenter.password)
@@ -569,32 +569,32 @@ describe('GET /rooms/:room_id/messages/', function () {
         .end(done);
     });
 
-    it('does not let a user that is not in the room see the messages', function(done){
+    it('does not let a user that is not in the room see the messages', function (done) {
         request(app)
         .get('/rooms/' + chatRoom_1.id + '/messages/')
         .auth(new_user.email, new_user.password)
         .expect(404,done)
     });
 
-    it('requires authorization', function(done){
+    it('requires authorization', function (done) {
         request(app)
         .get('/rooms/' + chatRoom_1.id + '/messages/')
         .expect(401,done);
     });
 
-    it('displays only and all the messages for that room',function(done){
+    it('displays only and all the messages for that room',function (done) {
         request(app)
         .get('/rooms/' + chatRoom_1.id + '/messages/')
         .auth(user.email, user.password)
-        .expect(function(results){
-            if(results.body.length == 3)
+        .expect(function (results) {
+            if (results.body.length == 3)
                 return results;
             return results.status = 400;
         })
         .expect(200,done);
     });
 
-    it('displays zero messages when there are none in the room', function(done){
+    it('displays zero messages when there are none in the room', function (done) {
         request(app)
         .get('/rooms/' + chatRoom_2.id + '/messages/')
         .auth(new_user.email, new_user.password)
@@ -1066,7 +1066,7 @@ describe('GET /rooms/:room_id/polls', function () {
             .catch(done);
     });
 
-    it('returns a list of polls in the room to audience members', function(done){
+    it('returns a list of polls in the room to audience members', function (done) {
         request(app)
             .get('/rooms/'+polls_1.room+'/polls')
             .auth(user.email, user.password)
@@ -1076,14 +1076,14 @@ describe('GET /rooms/:room_id/polls', function () {
             .end(done);
     });
 
-    it('requires valid credentials', function (done){
+    it('requires valid credentials', function (done) {
         request(app)
             .get('/rooms/'+polls_1.room+'/polls')
             .auth(new_user.email, new_user.password)
             .expect(404, done);
     });
 
-    it('checks to see if the room exists', function(done){
+    it('checks to see if the room exists', function (done) {
         request(app)
             .get('/rooms/2/polls')
             .auth(user.email, user.password)
@@ -1166,7 +1166,7 @@ describe('POST /rooms/:room_id/polls', function () {
         chatRoom.invitation_list = invitationList.id;
 
         testUtil.insertChatRoom(chatRoom)
-        .then(function(results){
+        .then(function (results) {
             return chatRoom.id = results;
         })
         .then(function () {
@@ -1293,7 +1293,7 @@ describe('POST /rooms/:room_id/close', function () {
         .catch(done);
     });
 
-    it('closes the chatroom specified ', function(done){
+    it('closes the chatroom specified ', function (done) {
        var goodRoom = chatRoom.id;
        request(app)
        .post('/rooms/'+ goodRoom +'/close')
@@ -1312,7 +1312,7 @@ describe('POST /rooms/:room_id/close', function () {
        });
     });
 
-    it('requires the presenter to own the room', function(done){
+    it('requires the presenter to own the room', function (done) {
         var goodRoom = chatRoom.id;
         request(app)
        .post('/rooms/'+ goodRoom +'/close')
@@ -1321,7 +1321,7 @@ describe('POST /rooms/:room_id/close', function () {
        .end(done);
     });
 
-    it('requires the user at least be a presenter', function(done){
+    it('requires the user at least be a presenter', function (done) {
        var goodRoom = chatRoom.id;
        request(app)
        .post('/rooms/'+ goodRoom +'/close')
@@ -1329,7 +1329,7 @@ describe('POST /rooms/:room_id/close', function () {
        .expect(403,done);
     });
 
-    it('requires a valid room number', function(done){
+    it('requires a valid room number', function (done) {
         var badRoom = chatRoom.id + 1;
         request(app)
         .post('/rooms/'+ badRoom +'/close')

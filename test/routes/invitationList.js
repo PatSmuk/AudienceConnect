@@ -31,14 +31,14 @@ describe('GET /invitationLists/', function () {
 			invitationList.id = results[0].id;
 
 			request(app)
-				.get('/invitationLists/')
-				.auth(presenter.email, presenter.password)
-				.expect('Content-Type', /json/)
-				.expect(200)
-				.expect(function (res) {
-					assert.deepEqual(res.body, [invitationList]);
-				})
-				.end(done);
+            .get('/invitationLists/')
+            .auth(presenter.email, presenter.password)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .expect(function (res) {
+                assert.deepEqual(res.body, [invitationList]);
+            })
+            .end(done);
 		})
 		.catch(done);
 	});
@@ -61,10 +61,10 @@ describe('GET /invitationLists/', function () {
 		testUtil.insertUser(user)
 		.then(function (id) {
 			request(app)
-				.get('/invitationLists/')
-				.auth(user.email, user.password)
-				.expect('Content-Type', /json/)
-				.expect(403, done);
+            .get('/invitationLists/')
+            .auth(user.email, user.password)
+            .expect('Content-Type', /json/)
+            .expect(403, done);
 		})
 		.catch(done);
 	});
@@ -84,20 +84,20 @@ describe('POST /invitationLists/', function () {
 		testUtil.insertUser(presenter)
 		.then(function () {
 			request(app)
-				.post('/invitationLists/')
-				.auth(presenter.email, presenter.password)
-				.send({ subject: 'My Cool Subject' })
-				.expect('Content-Type', /json/)
-				.expect(200, done);
+            .post('/invitationLists/')
+            .auth(presenter.email, presenter.password)
+            .send({ subject: 'My Cool Subject' })
+            .expect('Content-Type', /json/)
+            .expect(200, done);
 		})
 		.catch(done);
 	});
 
 	it("requires valid credentials", function (done) {
 		request(app)
-            .get('/invitationLists/')
-            .expect('Content-Type', /json/)
-            .expect(401, done);
+        .get('/invitationLists/')
+        .expect('Content-Type', /json/)
+        .expect(401, done);
 	});
 
 	it("doesn't allow access to regular users", function (done) {
@@ -111,10 +111,10 @@ describe('POST /invitationLists/', function () {
 		testUtil.insertUser(user)
 		.then(function () {
 			request(app)
-				.get('/invitationLists/')
-				.auth(user.email, user.password)
-				.expect('Content-Type', /json/)
-				.expect(403, done);
+            .get('/invitationLists/')
+            .auth(user.email, user.password)
+            .expect('Content-Type', /json/)
+            .expect(403, done);
 		})
 		.catch(done);
 	});

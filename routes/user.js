@@ -9,6 +9,13 @@ var database = require('../database');
  * Returns all information for the user identified by :user_id.
  */
 router.get('/:user_id/', auth.requireLevel('logged_in'), function (req, res, next) {
+    req.checkParams('user_id', 'User ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
     var user_id = req.params.user_id;
 
     //return 404 if the user doesn't exist

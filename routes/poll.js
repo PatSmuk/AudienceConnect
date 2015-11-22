@@ -12,15 +12,17 @@ var database = require('../database');
  *  - answer: the ID of the answer you wish to vote for
  */
 router.post('/:poll_id/vote', auth.requireLevel('logged_in'), function (req, res, next) {
-    var poll_id = req.params.poll_id;
-    var userid = req.user.id;
-    var answer = parseInt(req.body.answer, 10);
+    req.checkBody('answer', 'Answer is required and must be an ID').isInt();
+    req.checkParams('poll_id', 'Poll ID is required and must be an ID').isInt();
 
-    req.checkBody('answer', 'answer is missing').notEmpty();
     var errors = req.validationErrors();
     if (errors) {
         return res.status(400).json({ errors: errors });
     }
+
+    var poll_id = req.params.poll_id;
+    var userid = req.user.id;
+    var answer = req.body.answer;
 
     // Check that the poll exists and is open.
     database.query("SELECT end_timestamp FROM polls WHERE id = $1", [poll_id])
@@ -94,7 +96,14 @@ router.post('/:poll_id/vote', auth.requireLevel('logged_in'), function (req, res
  * Close the poll identified with :poll_id.
  */
 router.post('/:poll_id/close', auth.requireLevel('presenter'), function (req, res, next) {
-    var poll_id = parseInt(req.params.poll_id, 10);
+    req.checkParams('poll_id', 'Poll ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
+    var poll_id = req.params.poll_id;
     var userid = req.user.id;
 
     // Check that the poll exists hasn't already been closed.

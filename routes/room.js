@@ -44,7 +44,7 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
 
     //check the body for the values
     req.checkBody('roomName', 'Roomname is missing').notEmpty();
-    req.checkBody('invitationList', 'Invitation List is missing').notEmpty();
+    req.checkBody('invitationList', 'Invitation list ID is required and must be an ID').isInt();
 
     var errors = req.validationErrors();
     if (errors) {
@@ -57,29 +57,29 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
     database.query(
         'SELECT id FROM invitation_lists WHERE id = $1',
         [invitationList]
-        )
-        .then(function (results) {
-            //no invitation list
-            if (results.length < 1) {
-                return res.status(400).json({
-                    errors: [{
-                        param: 'invitationList',
-                        msg: 'Invitation list does not exist',
-                        value: invitationList
-                    }]
-                });
-            }
+    )
+    .then(function (results) {
+        //no invitation list
+        if (results.length == 0) {
+            return res.status(400).json({
+                errors: [{
+                    param: 'invitationList',
+                    msg: 'Invitation list does not exist',
+                    value: invitationList
+                }]
+            });
+        }
 
-            //if the invitation list exists, then add the room
-            database.query(
-                'INSERT INTO chat_rooms (room_name, invitation_list) VALUES ($1, $2)',
-                [roomName, invitationList]
-                )
-                .then(function () {
-                    return res.json({});
-                });
-        })
-        .catch(next);
+        //if the invitation list exists, then add the room
+        database.query(
+            'INSERT INTO chat_rooms (room_name, invitation_list) VALUES ($1, $2)',
+            [roomName, invitationList]
+        )
+        .then(function () {
+            return res.json({});
+        });
+    })
+    .catch(next);
 });
 
 /*
@@ -88,6 +88,13 @@ router.post('/', auth.requireLevel('presenter'), function (req, res, next) {
  * Deletes the chat room identified by :room_id.
  */
 router.delete('/:room_id/', auth.requireLevel('presenter'), function (req, res, next) {
+    req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors }); //oh no! something must be missing!
+    }
+
     var room_id = req.params.room_id;
     var id = req.user.id;
 
@@ -95,31 +102,34 @@ router.delete('/:room_id/', auth.requireLevel('presenter'), function (req, res, 
     database.query(
         'SELECT id FROM chat_rooms WHERE id = $1',
         [room_id]
+    )
+    .then(function (results) {
+        if (results.length != 1) {
+            return res.status(400).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+        }
+        //check if the user that holds the room is trying to delete it
+        return database.query(
+            ' SELECT id FROM chat_rooms             ' +
+            ' WHERE invitation_list                 ' +
+            ' IN (                                  ' +
+            '     SELECT id FROM invitation_lists   ' +
+            '     WHERE presenter = $1              ' +
+            ' )                                     ' +
+            ' AND id = $2                           ',
+            [id, room_id]
         )
         .then(function (results) {
-            if (results.length != 1) {
-                return res.status(400).json({ errors: [{ param: 'room_id', msg: 'Chat room does not exist', value: room_id }] });
+            //if the presenter does not own it, throw an error
+            if (results < 1) {
+                return res.status(400).json({ errors: [{ param: 'presenter_id', msg: 'The presenter id does not own this room', value: room_id }] });
             }
-            //check if the user that holds the room is trying to delete it
-            return database.query(
-                'SELECT id FROM chat_rooms ' +
-                'WHERE invitation_list ' +
-                'IN (SELECT id FROM invitation_lists ' +
-                'WHERE presenter = $1) AND id = $2',
-                [id, room_id]
-                )
-                .then(function (results) {
-                    //if the presenter does not own it, throw an error
-                    if (results < 1) {
-                        return res.status(400).json({ errors: [{ param: 'presenter_id', msg: 'The presenter id does not own this room', value: room_id }] });
-                    }
-                    database.query('DELETE FROM chat_rooms WHERE id = $1', [room_id])
-                        .then(function () {
-                            return res.json({});
-                        });
-                });
-        })
-        .catch(next);
+            database.query('DELETE FROM chat_rooms WHERE id = $1', [room_id])
+            .then(function () {
+                return res.json({});
+            });
+        });
+    })
+    .catch(next);
 });
 
 /*
@@ -128,27 +138,34 @@ router.delete('/:room_id/', auth.requireLevel('presenter'), function (req, res, 
  * Gets an array of all messages sent in the room identified by :room_id.
  */
 router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
+    req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors }); //oh no! something must be missing!
+    }
+
     var room_id = parseInt(req.params.room_id, 10);
     var user_id = req.user.id;
 
     //check if the room exists
     database.query(
-        ' SELECT id ' +
-        ' FROM chat_rooms ' +
-        ' WHERE id = $1 ' +
-        ' AND invitation_list IN (' +
-        '     SELECT id ' +
-        '     FROM invitation_lists ' +
-        '     WHERE presenter = $2 ' +
-        '     UNION ' +
-        '     SELECT invitation_list ' +
-        '     FROM invitation_list_members ' +
-        '     WHERE audience_member = $2 ' +
-        ' )',
+        ' SELECT id                         ' +
+        ' FROM chat_rooms                   ' +
+        ' WHERE id = $1                     ' +
+        ' AND invitation_list IN (          ' +
+        '     SELECT id                     ' +
+        '     FROM invitation_lists         ' +
+        '     WHERE presenter = $2          ' +
+        '     UNION                         ' +
+        '     SELECT invitation_list        ' +
+        '     FROM invitation_list_members  ' +
+        '     WHERE audience_member = $2    ' +
+        ' )                                 ',
         [room_id, user_id]
     )
-    .then(function(results){
-        if (results.length != 1){
+    .then(function (results) {
+        if (results.length != 1) {
             return res.status(404).json({ error: 'Room '+room_id+' not found' });
         }
 
@@ -172,8 +189,14 @@ router.get('/:room_id/messages/', auth.requireLevel('logged_in'), function (req,
  * Sends a chat message to the room identified by :room_id.
  */
 router.post('/:room_id/messages/', auth.requireLevel('logged_in'), function (req, res, next) {
+    req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
 
-    var room = parseInt(req.params.room_id, 10);
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors }); //oh no! something must be missing!
+    }
+
+    var room = req.params.room_id;
     var message = req.body.message;
     var user_id = req.user.id;
 
@@ -227,8 +250,8 @@ router.delete('/:room_id/messages/:message_id/', auth.requireLevel('presenter'),
         return res.status(400).json({errors: errors});
     }
 
-    var room_id = parseInt(req.params.room_id, 10);
-    var message_id = parseInt(req.params.message_id, 10);
+    var room_id = req.params.room_id;
+    var message_id = req.params.message_id;
     var user_id = req.user.id;
 
     // Ensure that the room exists and the user has access to it.
@@ -281,9 +304,17 @@ router.delete('/:room_id/messages/:message_id/', auth.requireLevel('presenter'),
  * Gets a list of all polls in the chat room identified by :room_id.
  */
 router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res, next) {
+    req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors }); //oh no! something must be missing!
+    }
+
     var room_id = req.params.room_id;
     var id = req.user.id;
     var total = 0;
+
     database.query(
         'SELECT id FROM chat_rooms WHERE id = $1',
         [room_id]
@@ -341,6 +372,7 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
  */
 router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, res, next) {
     req.checkBody('question', 'Question is missing').notEmpty();
+    req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
 
     var errors = req.validationErrors();
     if (errors) {
@@ -355,15 +387,22 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
             return res.status(400).json({ errors: "That room does not exist" });
         }
         return database.query("INSERT INTO polls (room, question) VALUES ($1, $2)", [room_id, question])
-            .then(function () {
-                res.json({});
-            });
+        .then(function () {
+            res.json({});
+        });
     })
-        .catch(next);
+    .catch(next);
 });
 
 router.post('/:room_id/close', auth.requireLevel('presenter'), function (req, res, next) {
-     var room_id = parseInt(req.params.room_id, 10);
+    req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors }); //oh no! something must be missing!
+    }
+
+     var room_id = req.params.room_id;
      var user_id = req.user.id;
 
     //check if the room exists
@@ -371,8 +410,8 @@ router.post('/:room_id/close', auth.requireLevel('presenter'), function (req, re
         'SELECT * FROM chat_rooms WHERE id = $1',
         [room_id]
     )
-    .then(function(results){
-        if(results.length != 1){
+    .then(function (results) {
+        if (results.length != 1) {
             return res.status(404).json({errors: [{param: 'room_id', msg: 'Chat room not found', value: room_id}]});
         }
         //check if the user that holds the room is trying to delete it
@@ -383,9 +422,9 @@ router.post('/:room_id/close', auth.requireLevel('presenter'), function (req, re
             'WHERE presenter = $1) AND id = $2',
             [user_id, room_id]
         )
-        .then(function(results){
+        .then(function (results) {
             //if the presenter does not own it, throw an error
-            if(results < 1){
+            if (results < 1) {
                 return res.status(400).json({errors: [{param: 'room_id', msg: "You don't own that room", value: room_id}]});
             }
 
@@ -395,7 +434,7 @@ router.post('/:room_id/close', auth.requireLevel('presenter'), function (req, re
             }
 
             return database.query('UPDATE chat_rooms SET end_timestamp = $1 WHERE id = $2', [new Date(), room_id])
-            .then(function (){
+            .then(function () {
                 return res.json({});
             });
         });
