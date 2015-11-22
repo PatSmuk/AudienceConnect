@@ -6,7 +6,14 @@ var assert = require('assert');
 
 
 function handle_list_id(req, res, next) {
-    var list_id = req.params.list_id;
+    req.checkParams('list_id', 'List ID is required and must be an ID').isInt();
+
+    var errors = req.validationErrors();
+    if (errors) {
+        return res.status(400).json({ errors: errors });
+    }
+
+    var list_id = parseInt(req.params.list_id);
     var user_id = req.user.id;
 
     database.query(
