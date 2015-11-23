@@ -1,6 +1,338 @@
-body
-  padding 50px
-  font 14px "Lucida Grande", Helvetica, Arial, sans-serif
+@import 'https://fonts.googleapis.com/css?family=Lobster|Open+Sans:400,600,700,300,800|Roboto:400,900,700,500,300,100|Slabo+27px|Lora:400,700|Merriweather:400,900,700,300,400italic,700italic,300italic,900italic|PT+Serif:400,700'
+
+*
+    margin 0
 
 a
-  color #00B7FF
+    text-decoration none
+
+html
+    height 100%
+
+body
+    background-color #161616
+    background-image url('/img/background.png')
+    display flex
+    justify-content center
+    height 100%
+
+    .welcome-screen
+        display none
+        color white
+        padding-top 100px
+
+        h1, h2, h3
+            text-align center
+
+        h1
+            font-family 'Lobster', cursive
+            font-size 36pt
+            margin 0
+
+        h2, h3
+            font-family 'Merriweather', serif
+
+        h3
+            font-size 12pt
+            margin 1em
+
+        .login-form
+            background-color #101010
+            padding 20px
+            padding-bottom 10px
+            border-radius 10px
+
+            .loading
+                text-align center
+                display none
+
+            .message-box
+                display none
+                border-radius 5px
+                padding 10px
+                margin-bottom 8px
+                text-align center
+                font-family 'Open Sans', sans-serif
+                font-weight 600
+                &.error
+                    background-color #d03831
+                &.success
+                    background-color #39CC43
+                    color black
+
+            .line
+                //display none
+                padding 4px
+                margin-bottom 10px
+
+                label
+                    font-family 'Roboto', sans-serif
+
+                    input
+                        display block
+                        margin 0
+                        width 92%
+                        font-size 16px
+                        appearance none
+                        box-shadow none
+                        border-radius 3px
+                        background-color #dcdcdc
+                        color #2e2e2e
+
+                        padding 10px
+                        border solid 1px #9d9d9d
+                        transition box-shadow 0.3s, border 0.3s
+
+                        &:focus
+                            outline none
+                            border solid 1px #9d9d9d
+                            box-shadow: 0 0 5px 1px #1daecb
+
+                .buttons
+                    text-align center
+
+                    button
+                        box-shadow inset 0px 1px 0px 0px #54a3f7
+                        background linear-gradient(to bottom, #007dc1 5%, #0061a7 100%)
+                        background-color #007dc1
+                        border-radius 5px
+                        border 1px solid #124d77
+                        display inline-block
+                        cursor pointer
+                        color #ffffff
+                        font-family Arial
+                        font-size 15px
+                        padding 8px 30px
+                        text-decoration none
+                        text-shadow 0px 1px 0px #154682
+                        margin 8px 16px 0
+
+                        &:active
+                            background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
+                            background-color #0061a7
+
+    .main
+        display flex
+        width 100%
+        flex-direction column
+
+        .header
+            padding 5px
+            font-family 'Lobster', cursive
+            font-size 20pt
+            text-align center
+            background-color #004266
+            a
+                color white
+
+        .app
+            display flex
+            flex-basis 100%
+
+            h1
+                padding 20px 0 10px 10px
+                font-family: 'Roboto', sans-serif;
+                font-weight 100
+
+            .room-list
+                flex-grow 1
+                background-color #f5fcfe
+                border-right 1px solid #D6D6D6
+                overflow-y auto
+
+                a
+                    display block
+                    padding 12px 0 12px 20px
+                    color black
+                    font-family: 'Open Sans', sans-serif;
+                    &.active
+                        background-color #c7edfc
+
+            .chat-room
+                flex-grow 3
+                display flex
+                flex-direction column
+                background-color #ffffff
+                position relative
+
+                .messages
+                    flex-basis 100%
+                    overflow-y auto
+                    padding-top 10px
+
+                    .received, .sent
+                        padding 0 16px 10px
+                        .text
+                            max-width 360px
+                            border-radius 7px
+                            margin-top 14px
+                            display inline-block
+                            padding 10px 15px 10px
+                            font-family 'Open Sans', sans-serif
+
+                    .received
+                        position relative
+                        img
+                            position absolute
+                            margin-top 10px
+                            border-radius 25px
+                        .text
+                            margin-left 70px
+                            background-color #c7edfc
+                        .left-triangle
+                            position absolute
+                            top 27px
+                            left 78px
+                            width 0
+                            height 0
+                            border-top 8px solid transparent
+                            border-bottom 8px solid transparent
+                            border-right 8px solid #c7edfc
+
+                    .sent
+                        text-align right
+                        position relative
+                        .text
+                            background-color #e5f7fd
+                        .right-triangle
+                            position absolute
+                            top 27px
+                            right 8px
+                            width 0
+                            height 0
+                            border-top 8px solid transparent
+                            border-bottom 8px solid transparent
+                            border-left 8px solid #e5f7fd
+
+                .inputs
+                    padding 10px 10px 20px 10px
+                    display flex
+
+                    input
+                        margin 0
+                        font-size 14px
+                        appearance none
+                        box-shadow none
+                        background-color #ffffff
+                        color #2e2e2e
+                        flex-basis 100%
+                        height 30px
+
+                        padding 0 10px
+                        border solid 1px #66cff6
+                        transition background-color 0.3s
+                        &:focus
+                            border solid 1px #66cff6
+                            background-color #e5f7fd
+
+                    button
+                        box-shadow inset 0px 1px 0px 0px #54a3f7
+                        background linear-gradient(to bottom, #007dc1 5%, #0061a7 100%)
+                        background-color #007dc1
+                        border-radius 5px
+                        border 1px solid #124d77
+                        cursor pointer
+                        color #ffffff
+                        font-family Arial
+                        font-size 15px
+                        padding 5px 10px
+                        text-decoration none
+                        text-shadow 0px 1px 0px #154682
+                        margin 0 0 0 16px
+
+                        &:active
+                            background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
+                            background-color #0061a7
+
+            .poll-section
+                flex-grow 1
+                display flex
+                flex-direction column
+                background-color #f5fcfe
+                border-left 1px solid #D6D6D6
+
+                .polls
+                    flex-basis 100%
+                    background-color #f5fcfe
+                    overflow-y auto
+
+                    .poll
+                        padding-left 16px
+                        margin-bottom 20px
+
+                        .question
+                            font-family 'Merriweather', serif
+                            font-style italic
+                            &:before
+                                content 'Q: '
+                                font-weight bold
+                                font-style normal
+
+                        .answers
+                            li
+                                font-family 'Open Sans', sans-serif
+                                a
+                                    display block
+                                    color black
+                                    margin-top 5px
+                                    font-family 'Open Sans', sans-serif
+                                    &.selected
+                                        font-weight bold
+
+                .poll-builder
+                    border-top 1px solid #D6D6D6
+                    padding-bottom 30px
+
+                    label
+                        margin-left 20px
+                        font-family 'Roboto', sans-serif
+
+                        .line
+                            display flex
+                            align-items center
+                            margin 0 20px 10px 0
+
+                            span.label
+                                margin-left 30px
+                            a
+                                margin 0 5px 0 10px
+                                color #525252
+                            input
+                                flex-basis 100%
+                                margin 0 0 0 20px
+                                font-size 14px
+                                appearance none
+                                box-shadow none
+                                background-color #ffffff
+                                color #2e2e2e
+                                height 30px
+                                padding 0 10px
+                                border solid 1px #66cff6
+                                transition background-color 0.3s
+                                box-sizing border-box
+
+                                &:focus
+                                    border solid 1px #66cff6
+                                    background-color #e5f7fd
+
+                    .buttons
+                        margin-top 20px
+                        text-align center
+                        button
+                            min-width 100px
+                            box-shadow inset 0px 1px 0px 0px #54a3f7
+                            background linear-gradient(to bottom, #007dc1 5%, #0061a7 100%)
+                            background-color #007dc1
+                            border-radius 5px
+                            border 1px solid #124d77
+                            cursor pointer
+                            color #ffffff
+                            font-family Arial
+                            font-size 15px
+                            padding 5px 10px
+                            text-decoration none
+                            text-shadow 0px 1px 0px #154682
+                            margin 0 0 0 16px
+                            &:active
+                                background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
+                                background-color #0061a7

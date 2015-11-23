@@ -1,5 +1,85 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    .welcome-screen
+        h2 Welcome to
+        h1 Audience Connect
+        h3 Please Sign In or Register
+
+        .login-form
+            .message-box.success
+                | Invalid email or password.
+            .line
+                label Email:
+                    input(type='email')
+            .line
+                label Password:
+                    input(type='password')
+            .line
+                .buttons
+                    button Register
+                    button Sign In
+            .loading
+                img(src='/img/ring.svg', alt='Loading')
+
+    .main
+        .header
+            a(href='#') Audience Connect
+        .app
+            .room-list
+                h1 Chat Rooms
+                a(href='#' class='active') Bob's Room
+                a(href='#') Steve's Room
+                a(href='#') Brian's Room
+
+            .chat-room
+                .messages
+                    .received
+                        img(src='http://placehold.it/50x50', width='50px', height='50px', alt='Avatar')
+                        .left-triangle
+                        .text  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse bibendum lacus orci, et blandit lacus gravida id. Vestibulum sit amet mauris lacus. Nullam congue gravida metus, in bibendum libero interdum at. Mauris rhoncus sed nisi a fermentum. Nulla facilisi. Nullam pellentesque vel elit nec dictum. Duis in rhoncus metus. Sed blandit consectetur odio, nec laoreet elit placerat id.
+                    .sent
+                        .text Wut
+                        .right-triangle
+                .inputs
+                    input(type='text')
+                    button Send
+
+            .poll-section
+                .polls
+                    h1 Polls
+                    .poll
+                        .question Do you want to RP?
+                        ol.answers
+                            li
+                                a.selected(href='#') Yes
+                            li
+                                a(href='#') No
+                    .poll
+                        .question Do you wish to continue?
+                        ol.answers
+                            li
+                                a(href='#') Yes
+                            li
+                                a.selected(href='#') No
+                .poll-builder
+                    h1 Add Poll
+                    label Question:
+                        .line
+                            input(type='text')
+                    label Answers:
+                        .line
+                            span.label 1.
+                            input(type='text')
+                            a(href='#').fa.fa-times.fa-lg
+                        .line
+                            span.label 2.
+                            input(type='text')
+                            a(href='#').fa.fa-times.fa-lg
+                        .line
+                            span.label 3.
+                            input(type='text')
+                            a(href='#').fa.fa-times.fa-lg
+                    .buttons
+                        button Add Answer
+                        button Submit
