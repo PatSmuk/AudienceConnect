@@ -1,38 +1,89 @@
 extends layout
 
 block content
-    .welcome-screen
-        h2 Welcome to
-        h1 Audience Connect
-        h3 Please Sign In or Register
+    .welcome-screen(style='display: none')
+        main
+            h2 Welcome to
+            h1 Audience Connect
+            h3 Please Sign In or Register
 
-        .login-form
-            .message-box.success
-                | Invalid email or password.
-            .line
-                label Email:
-                    input(type='email')
-            .line
-                label Password:
-                    input(type='password')
-            .line
-                .buttons
-                    button Register
-                    button Sign In
-            .loading
-                img(src='/img/ring.svg', alt='Loading')
+            .login-form
+                .message-box.success(style='display: none')
+                    | Invalid email or password.
+                .line
+                    label Email:
+                        input(type='email')
+                .line
+                    label Password:
+                        input(type='password')
+                .line
+                    .buttons
+                        button Register
+                        button Sign In
+                .loading(style='display: none')
+                    img(src='/img/ring.svg', alt='Loading')
 
-    .main
-        .header
+    .main-screen
+        header
             a(href='#') Audience Connect
-        .app
-            .room-list
-                h1 Chat Rooms
-                a(href='#' class='active') Bob's Room
-                a(href='#') Steve's Room
-                a(href='#') Brian's Room
+        main
+            section.room-section
+                a(href='#' class='active')
+                    span.fa.fa-lg.fa-list
+                    | Invitation Lists
+                .room-list
+                    h1 Chat Rooms
+                    a(href='#')
+                        span.fa.fa-chevron-right
+                        | Bob's Room
+                    a(href='#')
+                        span.fa.fa-chevron-right
+                        | Steve's Room
+                    a(href='#')
+                        span.fa.fa-chevron-right
+                        | Brian's Room
+                .room-builder
+                    h1 Add Chat Room
+                    label Room Name:
+                        .line
+                            input(type='text')
+                    label Invitation List:
+                        .line
+                            select
+                                option(value='1') Database Project Presentation
+                    button Submit
 
-            .chat-room
+            section.invitation-list-section(style='display: none')
+                .invitation-list
+                    .list-container
+                        ul Database Project Presentation
+                            li
+                                img(src='http://placehold.it/50x50', width='50px', height='50px', alt="Bob's Avatar")
+                                span.name Albert Fung
+                                a(href='#').fa.fa-times.fa-lg
+                            li
+                                img(src='http://placehold.it/50x50', width='50px', height='50px', alt="Steve's Avatar")
+                                span.name Stuart Calverly
+                                a(href='#').fa.fa-times.fa-lg
+                            li
+                                img(src='http://placehold.it/50x50', width='50px', height='50px', alt="Steve's Avatar")
+                                span.name Jason Runzer
+                                a(href='#').fa.fa-times.fa-lg
+                    .add-user
+                        h1 Add User
+                        label Name:
+                            .line
+                                input(type='text')
+                        button Submit
+
+            section.add-invitation-list(style='display: none')
+                h1 Add Invitation List
+                label List Name:
+                    .line
+                        input(type='text')
+                button Submit
+
+            section.chat-section
                 .messages
                     .received
                         img(src='http://placehold.it/50x50', width='50px', height='50px', alt='Avatar')
@@ -45,7 +96,7 @@ block content
                     input(type='text')
                     button Send
 
-            .poll-section
+            section.poll-section
                 .polls
                     h1 Polls
                     .poll

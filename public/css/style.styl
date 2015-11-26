@@ -1,4 +1,4 @@
-@import 'https://fonts.googleapis.com/css?family=Lobster|Open+Sans:400,600,700,300,800|Roboto:400,900,700,500,300,100|Slabo+27px|Lora:400,700|Merriweather:400,900,700,300,400italic,700italic,300italic,900italic|PT+Serif:400,700'
+@import 'https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700|Roboto+Condensed:400,300,700|Open+Sans:400,300,600|Roboto:400,100|Slabo+27px|Merriweather:400,400italic|Lobster'
 
 *
     margin 0
@@ -7,17 +7,34 @@ a
     text-decoration none
 
 html
+body
     height 100%
 
-body
+button
+    box-shadow inset 0px 1px 0px 0px #54a3f7
+    background linear-gradient(to bottom, #007dc1 5%, #0061a7 100%)
+    background-color #007dc1
+    border-radius 5px
+    border 1px solid #124d77
+    cursor pointer
+    color #ffffff
+    font-family Arial
+    font-size 15px
+    text-decoration none
+    text-shadow 0px 1px 0px #154682
+    padding 5px 10px
+    &:active
+        background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
+        background-color #0061a7
+
+.welcome-screen
     background-color #161616
     background-image url('/img/background.png')
     display flex
     justify-content center
     height 100%
 
-    .welcome-screen
-        display none
+    main
         color white
         padding-top 100px
 
@@ -44,10 +61,8 @@ body
 
             .loading
                 text-align center
-                display none
 
             .message-box
-                display none
                 border-radius 5px
                 padding 10px
                 margin-bottom 8px
@@ -73,7 +88,6 @@ body
                         margin 0
                         width 92%
                         font-size 16px
-                        appearance none
                         box-shadow none
                         border-radius 3px
                         background-color #dcdcdc
@@ -111,228 +125,296 @@ body
                             background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
                             background-color #0061a7
 
-    .main
+.main-screen
+    display flex
+    flex-direction column
+    height 100%
+
+    input
+        font-size 14px
+        box-shadow none
+        background-color #ffffff
+        color #2e2e2e
+        height 30px
+        border solid 1px #66cff6
+        transition background-color 0.3s
+        padding 0 10px
+        &:focus
+            border solid 1px #66cff6
+            background-color #e5f7fd
+
+    select
+        font-size 14px
+        box-shadow none
+        background-color #ffffff
+        color #2e2e2e
+        height 30px
+        border solid 1px #66cff6
+        transition background-color 0.3s
+        padding 0 4px
+        &:focus
+            border solid 1px #66cff6
+            background-color #e5f7fd
+        option
+            padding 4px 6px 4px 6px
+
+    label
+        margin-left 20px
+        font-family 'Roboto', sans-serif
+
+    h1
+        padding 20px 0 10px 10px
+        font-family: 'Roboto', sans-serif;
+        font-weight 100
+        font-size 20pt
+
+    header
+        padding 5px
+        font-family 'Lobster', cursive
+        font-size 20pt
+        text-align center
+        background-color #004266
+        a
+            color white
+
+    main
+        flex-grow 1
         display flex
-        width 100%
-        flex-direction column
 
-        .header
-            padding 5px
-            font-family 'Lobster', cursive
-            font-size 20pt
-            text-align center
-            background-color #004266
-            a
-                color white
-
-        .app
+        section.room-section
+            flex-basis 25%
+            background-color #f5fcfe
+            border-right 1px solid #D6D6D6
             display flex
-            flex-grow 1
-
-            h1
-                padding 20px 0 10px 10px
-                font-family: 'Roboto', sans-serif;
-                font-weight 100
+            flex-direction column
 
             .room-list
                 flex-grow 1
-                background-color #f5fcfe
-                border-right 1px solid #D6D6D6
                 overflow-y auto
 
-                a
-                    display block
-                    padding 12px 0 12px 20px
-                    color black
-                    font-family: 'Open Sans', sans-serif;
-                    &.active
-                        background-color #c7edfc
+            a
+                display block
+                padding 12px 0 12px 20px
+                color black
+                font-family: 'Open Sans', sans-serif;
+                &.active
+                    background-color #c7edfc
+                .fa
+                    margin-right 8px
+                    color #525252
 
-            .chat-room
-                flex-grow 3
-                display flex
-                flex-direction column
-                background-color #ffffff
-                position relative
+            .room-builder
+                border-top 1px solid #D6D6D6
 
-                .messages
-                    flex-grow 1
-                    overflow-y auto
-                    padding-top 10px
-
-                    .received, .sent
-                        padding 0 16px 10px
-                        .text
-                            max-width 360px
-                            border-radius 7px
-                            margin-top 14px
-                            display inline-block
-                            padding 10px 15px 10px
-                            font-family 'Open Sans', sans-serif
-
-                    .received
-                        position relative
-                        img
-                            position absolute
-                            margin-top 10px
-                            border-radius 25px
-                        .text
-                            margin-left 70px
-                            background-color #c7edfc
-                        .left-triangle
-                            position absolute
-                            top 27px
-                            left 78px
-                            width 0
-                            height 0
-                            border-top 8px solid transparent
-                            border-bottom 8px solid transparent
-                            border-right 8px solid #c7edfc
-
-                    .sent
-                        text-align right
-                        position relative
-                        .text
-                            background-color #e5f7fd
-                        .right-triangle
-                            position absolute
-                            top 27px
-                            right 8px
-                            width 0
-                            height 0
-                            border-top 8px solid transparent
-                            border-bottom 8px solid transparent
-                            border-left 8px solid #e5f7fd
-
-                .inputs
-                    padding 10px 10px 20px 10px
+                .line
+                    margin 0 20px 10px 20px
                     display flex
-
                     input
-                        margin 0
-                        font-size 14px
-                        appearance none
-                        box-shadow none
-                        background-color #ffffff
-                        color #2e2e2e
+                    select
                         flex-grow 1
-                        height 30px
 
-                        padding 0 10px
-                        border solid 1px #66cff6
-                        transition background-color 0.3s
-                        &:focus
-                            border solid 1px #66cff6
-                            background-color #e5f7fd
+                button
+                    margin 5px 20px 30px 20px
 
-                    button
-                        box-shadow inset 0px 1px 0px 0px #54a3f7
-                        background linear-gradient(to bottom, #007dc1 5%, #0061a7 100%)
-                        background-color #007dc1
-                        border-radius 5px
-                        border 1px solid #124d77
-                        cursor pointer
-                        color #ffffff
-                        font-family Arial
-                        font-size 15px
-                        padding 5px 10px
-                        text-decoration none
-                        text-shadow 0px 1px 0px #154682
-                        margin 0 0 0 16px
+        section.invitation-list-section
+            flex-basis 75%
+            display flex
+            overflow-x auto
 
-                        &:active
-                            background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
-                            background-color #0061a7
+            .invitation-list
+            .invitation-list-builder
+                border-right 1px solid #D6D6D6
+                width 300px
+                flex-shrink 0
 
-            .poll-section
-                flex-grow 1
+            .invitation-list
                 display flex
                 flex-direction column
-                background-color #f5fcfe
-                border-left 1px solid #D6D6D6
 
-                .polls
+                .list-container
                     flex-grow 1
-                    background-color #f5fcfe
                     overflow-y auto
 
-                    .poll
-                        padding-left 16px
-                        margin-bottom 20px
+                    ul
+                        height 1px
+                        padding 12px 20px 0 20px
+                        list-style none
+                        font-family: 'Open Sans Condensed', sans-serif;
+                        font-size 20pt
 
-                        .question
-                            font-family 'Merriweather', serif
-                            font-style italic
-                            &:before
-                                content 'Q: '
-                                font-weight bold
-                                font-style normal
-
-                        .answers
-                            li
-                                font-family 'Open Sans', sans-serif
-                                a
-                                    display block
-                                    color black
-                                    margin-top 5px
-                                    font-family 'Open Sans', sans-serif
-                                    &.selected
-                                        font-weight bold
-
-                .poll-builder
-                    border-top 1px solid #D6D6D6
-                    padding-bottom 30px
-
-                    label
-                        margin-left 20px
-                        font-family 'Roboto', sans-serif
-
-                        .line
+                        li
+                            font-family 'Open Sans', sans-serif
+                            font-size 13pt
+                            margin 10px 10px 0 0
                             display flex
                             align-items center
-                            margin 0 20px 10px 0
-
-                            span.label
-                                margin-left 30px
-                            a
-                                margin 0 5px 0 10px
-                                color #525252
-                            input
+                            img
+                                border-radius 25px
+                            span.name
                                 flex-grow 1
-                                margin 0 0 0 20px
-                                font-size 14px
-                                appearance none
-                                box-shadow none
-                                background-color #ffffff
-                                color #2e2e2e
-                                height 30px
-                                padding 0 10px
-                                border solid 1px #66cff6
-                                transition background-color 0.3s
-                                box-sizing border-box
+                                margin-left 14px
+                            a
+                                color #525252
 
-                                &:focus
-                                    border solid 1px #66cff6
-                                    background-color #e5f7fd
+                .add-user
+                    border-top 1px solid #D6D6D6
 
-                    .buttons
-                        margin-top 20px
-                        text-align center
-                        button
-                            min-width 100px
-                            box-shadow inset 0px 1px 0px 0px #54a3f7
-                            background linear-gradient(to bottom, #007dc1 5%, #0061a7 100%)
-                            background-color #007dc1
-                            border-radius 5px
-                            border 1px solid #124d77
-                            cursor pointer
-                            color #ffffff
-                            font-family Arial
-                            font-size 15px
-                            padding 5px 10px
-                            text-decoration none
-                            text-shadow 0px 1px 0px #154682
-                            margin 0 0 0 16px
-                            &:active
-                                background linear-gradient(to bottom, #0061a7 5%, #007dc1 100%)
-                                background-color #0061a7
+                    .line
+                        margin 0 20px 10px 20px
+                        display flex
+                        input
+                        select
+                            flex-grow 1
+
+                    button
+                        margin 5px 20px 30px 20px
+
+        section.add-invitation-list
+            flex-basis 25%
+            border-left 1px solid #D6D6D6
+            background-color #f5fcfe
+
+            .line
+                margin 0 20px 10px 20px
+                display flex
+                input
+                select
+                    flex-grow 1
+
+            button
+                margin 5px 20px 30px 20px
+
+        section.chat-section
+            flex-basis 50%
+            display flex
+            flex-direction column
+            background-color #ffffff
+            position relative
+
+            .messages
+                flex-grow 1
+                overflow-y auto
+                padding-top 10px
+
+                .received, .sent
+                    padding 0 16px 10px
+                    .text
+                        max-width 360px
+                        border-radius 7px
+                        margin-top 14px
+                        display inline-block
+                        padding 10px 15px 10px
+                        font-family 'Open Sans', sans-serif
+
+                .received
+                    position relative
+                    img
+                        position absolute
+                        margin-top 10px
+                        border-radius 25px
+                    .text
+                        margin-left 70px
+                        background-color #c7edfc
+                    .left-triangle
+                        position absolute
+                        top 27px
+                        left 78px
+                        width 0
+                        height 0
+                        border-top 8px solid transparent
+                        border-bottom 8px solid transparent
+                        border-right 8px solid #c7edfc
+
+                .sent
+                    text-align right
+                    position relative
+                    .text
+                        background-color #e5f7fd
+                    .right-triangle
+                        position absolute
+                        top 27px
+                        right 8px
+                        width 0
+                        height 0
+                        border-top 8px solid transparent
+                        border-bottom 8px solid transparent
+                        border-left 8px solid #e5f7fd
+
+            .inputs
+                padding 12px 12px 30px 12px
+                display flex
+
+                input
+                    margin 0
+                    flex-grow 1
+
+                button
+                    padding 5px 10px
+                    margin 0 0 0 16px
+
+        section.poll-section
+            flex-basis 25%
+            display flex
+            flex-direction column
+            background-color #f5fcfe
+            border-left 1px solid #D6D6D6
+
+            .polls
+                flex-grow 1
+                background-color #f5fcfe
+                overflow-y auto
+
+                .poll
+                    padding-left 16px
+                    margin-bottom 20px
+
+                    .question
+                        font-family 'Merriweather', serif
+                        font-style italic
+                        &:before
+                            content 'Q: '
+                            font-weight bold
+                            font-style normal
+
+                    .answers
+                        li
+                            font-family 'Open Sans', sans-serif
+
+                            a
+                                display block
+                                color black
+                                margin-top 5px
+                                font-family 'Open Sans', sans-serif
+                                &.selected
+                                    font-weight bold
+
+            .poll-builder
+                border-top 1px solid #D6D6D6
+                padding-bottom 30px
+
+                label
+                    margin-left 20px
+                    font-family 'Roboto', sans-serif
+
+                    .line
+                        display flex
+                        align-items center
+                        margin 0 20px 10px 0
+
+                        span.label
+                            margin-left 30px
+                        a
+                            margin 0 5px 0 10px
+                            color #525252
+                        input
+                            flex-grow 1
+                            margin 0 0 0 20px
+
+                .buttons
+                    margin-top 20px
+                    text-align center
+
+                    button
+                        min-width 100px
+                        padding 5px 10px
+                        margin 0 0 0 16px
