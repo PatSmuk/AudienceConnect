@@ -1,4 +1,4 @@
-@import 'https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700|Roboto+Condensed:400,300,700|Open+Sans:400,300,600|Roboto:400,100|Slabo+27px|Merriweather:400,400italic|Lobster'
+@import 'https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700|Roboto+Condensed:400,300,700|Open+Sans:400,300,600,700|Roboto:400,100|Slabo+27px|Merriweather:400,400italic|Lobster'
 
 *
     margin 0
@@ -185,6 +185,7 @@ button
             flex-basis 25%
             background-color #f5fcfe
             border-right 1px solid #D6D6D6
+            padding-top 10px
             display flex
             flex-direction column
 
@@ -378,15 +379,18 @@ button
 
                     .answers
                         li
+                            margin-top 3px
                             font-family 'Open Sans', sans-serif
 
                             a
-                                display block
                                 color black
                                 margin-top 5px
                                 font-family 'Open Sans', sans-serif
                                 &.selected
                                     font-weight bold
+
+                            span.votes
+                                font-weight 100
 
             .poll-builder
                 border-top 1px solid #D6D6D6
