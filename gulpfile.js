@@ -73,6 +73,7 @@ gulp.task('webpack', function (callback) {
 });
 
 gulp.task('default', [
+    'webpack',
     'stylus',
     'develop',
     'watch'
