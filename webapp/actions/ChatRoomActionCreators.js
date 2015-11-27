@@ -40,6 +40,43 @@ var ChatRoomActionCreators = {
             }
             ChatRoomActionCreators.fetchChatRooms(LoginStore.getEmail(), LoginStore.getPassword());
         });
+    },
+
+    fetchMessages: function (room_id) {
+        request
+        .get('/rooms/'+room_id+'/messages/')
+        .auth(LoginStore.getEmail(), LoginStore.getPassword())
+        .end(function (err, res) {
+            if (err) {
+                console.error(err);
+                console.dir(res.body);
+                return;
+            }
+            ChatRoomActionCreators.receiveMessages(room_id, res.body);
+        });
+    },
+
+    receiveMessages: function (room_id, messages) {
+        Dispatcher.dispatch({
+            type: ActionTypes.RECEIVE_CHAT_MESSAGES,
+            room_id: room_id,
+            messages: messages
+        });
+    },
+
+    sendMessage: function (room_id, message) {
+        request
+        .post('/rooms/'+room_id+'/messages/')
+        .auth(LoginStore.getEmail(), LoginStore.getPassword())
+        .send({ message: message })
+        .end(function (err, res) {
+            if (err) {
+                console.error(err);
+                console.dir(res.body);
+                return;
+            }
+            ChatRoomActionCreators.fetchMessages(room_id);
+        });
     }
 };
 

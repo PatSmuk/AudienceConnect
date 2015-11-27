@@ -9,10 +9,20 @@ var InvitationLists         = require('./InvitationLists.jsx');
 var InvitationListBuilder   = require('./InvitationListBuilder.jsx');
 var Polls                   = require('./Polls.jsx');
 
+var ChatRoomActionCreators = require('../actions/ChatRoomActionCreators');
+
+
 function getStateFromStores() {
+    var chatRooms = ChatRoomStore.getAll().map(function (room_id) {
+        return {
+            id: room_id,
+            room_name: ChatRoomStore.getChatRoom(room_id).room_name
+        }
+    });
+
     return {
         user: LoginStore.getUser(),
-        chatRooms: ChatRoomStore.getChatRooms()
+        chatRooms: chatRooms
     }
 }
 
@@ -31,10 +41,17 @@ var MainScreen = React.createClass({
 
     componentDidMount: function () {
         ChatRoomStore.addChangeListener(this._onChange);
+
+        var updateInterval = setInterval(function () {
+            ChatRoomActionCreators.fetchChatRooms(LoginStore.getEmail(), LoginStore.getPassword());
+        }, 1000);
+
+        this.setState({ updateInterval: updateInterval });
     },
 
     componentWillUnmount: function () {
         ChatRoomStore.removeChangeListener(this._onChange);
+        clearInterval(this.state.updateInterval);
     },
 
     handleClickInvitationLists: function (event) {
@@ -52,7 +69,7 @@ var MainScreen = React.createClass({
 
     handleClickChatRoom: function (room_id, event) {
         event.preventDefault();
-        
+
         this.setState({
             editingInvitationLists: false,
             selectedChatRoom: room_id
