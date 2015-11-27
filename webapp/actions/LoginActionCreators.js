@@ -1,5 +1,6 @@
 var Dispatcher = require('../dispatcher/Dispatcher');
 var ActionTypes = require('../constants/Constants').ActionTypes;
+var ChatRoomActionCreators = require('./ChatRoomActionCreators');
 
 var request = require('superagent');
 
@@ -29,7 +30,9 @@ var LoginActionCreators = {
             email: email,
             password: password,
             user: user
-        })
+        });
+
+        ChatRoomActionCreators.fetchChatRooms(email, password);
     },
 
     receiveLoginError: function (error) {

@@ -5,7 +5,7 @@ var request = require('superagent');
 var LoginStore = require('./LoginStore');
 
 
-var _chatRooms = null;
+var _chatRooms = [];
 var CHANGE_EVENT = 'change';
 
 var ChatRoomStore = Object.assign({}, EventEmitter.prototype, {
@@ -23,29 +23,21 @@ var ChatRoomStore = Object.assign({}, EventEmitter.prototype, {
     },
 
     getChatRooms: function () {
-        if (_chatRooms) {
-            return _chatRooms;
-        }
-
-        if (!LoginStore.getEmail() || !LoginStore.getPassword()) {
-            console.log('Tried to fetch chat rooms before login. Possible bug.');
-            return [];
-        }
-
-        request
-        .get('/rooms/')
-        .auth(LoginStore.getEmail(), LoginStore.getPassword())
-        .end(function (err, res) {
-            if (err) return;
-            _chatRooms = res.body;
-            ChatRoomStore.emitChange();
-        });
-
-        return [];
+        return _chatRooms;
     }
 });
 
+
 Dispatcher.register(function (action) {
+
+    switch (action.type) {
+
+        case ActionTypes.RECEIVE_CHAT_ROOMS: {
+            _chatRooms = action.chatRooms;
+            ChatRoomStore.emitChange();
+            break;
+        }
+    }
 });
 
 module.exports = ChatRoomStore;
