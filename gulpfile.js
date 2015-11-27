@@ -5,7 +5,9 @@ var gulp = require('gulp'),
   livereload = require('gulp-livereload'),
   stylus = require('gulp-stylus'),
   mocha = require('gulp-mocha'),
-  env = require('gulp-env');
+  env = require('gulp-env'),
+  gutil = require('gulp-util'),
+  webpack = require('webpack');
 
 gulp.task('stylus', function () {
     gulp.src('./public/css/*.styl')
@@ -42,6 +44,32 @@ gulp.task('test', function () {
     return gulp.src('./test/**/*.js', {read: false})
                .pipe(mocha({reporter: 'spec'}))
                .on('end', function () { process.exit(); });
+});
+
+gulp.task('webpack', function (callback) {
+    webpack({
+        context: __dirname + '/webapp',
+        entry: './main.jsx',
+        output: {
+            path: __dirname + '/public/js',
+            filename: 'bundle.js'
+        },
+        module: {
+            loaders: [
+                {
+                    test: /\.jsx?$/,
+                    loader: 'babel-loader',
+                    query: {
+                        presets: ['es2015', 'react']
+                    }
+                }
+            ]
+        }
+    }, function (err, stats) {
+        if (err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString());
+        callback();
+    })
 });
 
 gulp.task('default', [

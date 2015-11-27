@@ -1,138 +1,16 @@
-extends layout
-
-block content
-    .welcome-screen(style='display: none')
-        main
-            h2 Welcome to
-            h1 Audience Connect
-            h3 Please Sign In or Register
-
-            .login-form
-                .message-box.success(style='display: none')
-                    | Invalid email or password.
-                .line
-                    label Email:
-                        input(type='email')
-                .line
-                    label Password:
-                        input(type='password')
-                .line
-                    .buttons
-                        button Register
-                        button Sign In
-                .loading(style='display: none')
-                    img(src='/img/ring.svg', alt='Loading')
-
-    .main-screen
-        header
-            a(href='#') Audience Connect
-        main
-            section.room-section
-                a(href='#' class='active')
-                    span.fa.fa-lg.fa-list
-                    | Invitation Lists
-                .room-list
-                    h1 Chat Rooms
-                    a(href='#')
-                        span.fa.fa-chevron-right
-                        | Bob's Room
-                    a(href='#')
-                        span.fa.fa-chevron-right
-                        | Steve's Room
-                    a(href='#')
-                        span.fa.fa-chevron-right
-                        | Brian's Room
-                .room-builder
-                    h1 Add Chat Room
-                    label Room Name:
-                        .line
-                            input(type='text')
-                    label Invitation List:
-                        .line
-                            select
-                                option(value='1') Database Project Presentation
-                    button Submit
-
-            section.invitation-list-section(style='display: none')
-                .invitation-list
-                    .list-container
-                        ul Database Project Presentation
-                            li
-                                img(src='http://placehold.it/50x50', width='50px', height='50px', alt="Bob's Avatar")
-                                span.name Albert Fung
-                                a(href='#').fa.fa-times.fa-lg
-                            li
-                                img(src='http://placehold.it/50x50', width='50px', height='50px', alt="Steve's Avatar")
-                                span.name Stuart Calverly
-                                a(href='#').fa.fa-times.fa-lg
-                            li
-                                img(src='http://placehold.it/50x50', width='50px', height='50px', alt="Steve's Avatar")
-                                span.name Jason Runzer
-                                a(href='#').fa.fa-times.fa-lg
-                    .add-user
-                        h1 Add User
-                        label Name:
-                            .line
-                                input(type='text')
-                        button Submit
-
-            section.add-invitation-list(style='display: none')
-                h1 Add Invitation List
-                label List Name:
-                    .line
-                        input(type='text')
-                button Submit
-
-            section.chat-section
-                .messages
-                    .received
-                        img(src='http://placehold.it/50x50', width='50px', height='50px', alt='Avatar')
-                        .left-triangle
-                        .text  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse bibendum lacus orci, et blandit lacus gravida id. Vestibulum sit amet mauris lacus. Nullam congue gravida metus, in bibendum libero interdum at. Mauris rhoncus sed nisi a fermentum. Nulla facilisi. Nullam pellentesque vel elit nec dictum. Duis in rhoncus metus. Sed blandit consectetur odio, nec laoreet elit placerat id.
-                    .sent
-                        .text Wut
-                        .right-triangle
-                .inputs
-                    input(type='text')
-                    button Send
-
-            section.poll-section
-                .polls
-                    h1 Polls
-                    .poll
-                        .question Do you want to RP?
-                        ol.answers
-                            li
-                                a.selected(href='#') Yes
-                                span.votes  — 10 votes
-                            li
-                                a(href='#') No
-                                span.votes  — 20 votes
-                    .poll
-                        .question Do you wish to continue?
-                        ol.answers
-                            li
-                                a(href='#') Yes
-                            li
-                                a.selected(href='#') No
-                .poll-builder
-                    h1 Add Poll
-                    label Question:
-                        .line
-                            input(type='text')
-                    label Answers:
-                        .line
-                            span.label 1.
-                            input(type='text')
-                            a(href='#').fa.fa-times.fa-lg
-                        .line
-                            span.label 2.
-                            input(type='text')
-                            a(href='#').fa.fa-times.fa-lg
-                        .line
-                            span.label 3.
-                            input(type='text')
-                            a(href='#').fa.fa-times.fa-lg
-                    .buttons
-                        button Add Answer
-                        button Submit
+doctype html
+html(lang='en')
+    head
+        meta(charset='UTF-8')
+        meta(name='viewport', content='width=device-width')
+        title= title
+        link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css')
+        link(rel='icon' href='/img/favicon.ico')
+        block css
+            link(rel='stylesheet', href='/css/style.css')
+        block js
+            if ENV_DEVELOPMENT
+                script(src='http://localhost:35729/livereload.js')
+    body
+        #app
+        script(src='/js/bundle.js')
