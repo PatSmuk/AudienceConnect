@@ -3,6 +3,15 @@ var router = express.Router();
 var auth = require('../auth');
 var database = require('../database');
 
+
+router.get('/', auth.requireLevel('presenter'), function (req, res, next) {
+    database.query('SELECT id FROM users')
+    .then(function (results) {
+        return res.json(results.map(function (row) { return row.id; }));
+    })
+    .catch(next);
+});
+
 /*
  * GET /users/me
  *
