@@ -16,17 +16,26 @@ var LoginActionCreators = {
         .get('/users/me')
         .auth(email, password)
         .end(function (err, res) {
-            LoginActionCreators.receiveLoginResponse(err, email, password, err ? null : res.body);
+            if (err) {
+                LoginActionCreators.receiveLoginError(err);
+            }
+            LoginActionCreators.receiveLoginSuccess(email, password, res.body);
         });
     },
 
-    receiveLoginResponse: function (error, email, password, user) {
+    receiveLoginSuccess: function (email, password, user) {
         Dispatcher.dispatch({
-            type: ActionTypes.RECEIVE_LOGIN_RESPONSE,
-            error: error,
+            type: ActionTypes.RECEIVE_LOGIN_SUCCESS,
             email: email,
             password: password,
             user: user
+        })
+    },
+
+    receiveLoginError: function (error) {
+        Dispatcher.dispatch({
+            type: ActionTypes.RECEIVE_LOGIN_ERROR,
+            error: error
         });
     }
 };

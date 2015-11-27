@@ -68,25 +68,34 @@ Dispatcher.register(function (action) {
             break;
         }
 
-        case ActionTypes.RECEIVE_LOGIN_RESPONSE: {
-            var error = action.error;
+        case ActionTypes.RECEIVE_LOGIN_SUCCESS: {
+            _isLoggingIn = false;
+            _isLoggedIn = true;
             _error = null;
             _email = action.email;
             _password = action.password;
             _user = action.user;
-            _isLoggingIn = false;
-            _isLoggedIn = !error;
 
-            if (error) {
-                if (error.status == 401) {
-                    _error = 'Invalid email or password.';
-                }
-                else if (error.status >= 500 && error.status < 600) {
-                    _error = 'Internal server error.';
-                }
-                else {
-                    _error = 'Unknown error: ' + error.message;
-                }
+            LoginStore.emitChange();
+            break;
+        }
+
+        case ActionTypes.RECEIVE_LOGIN_ERROR: {
+            var error = action.error;
+            _isLoggingIn = false;
+            _isLoggedIn = false;
+            _email = null;
+            _password = null;
+            _user = null;
+
+            if (error.status == 401) {
+                _error = 'Invalid email or password.';
+            }
+            else if (error.status >= 500 && error.status < 600) {
+                _error = 'Internal server error.';
+            }
+            else {
+                _error = 'Unknown error: ' + error.message;
             }
 
             LoginStore.emitChange();
