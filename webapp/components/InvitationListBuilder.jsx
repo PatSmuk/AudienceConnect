@@ -1,5 +1,7 @@
 var React = require('react');
 
+var InvitationListActionCreators = require('../actions/InvitationListActionCreators');
+
 function getStateFromStores() {
     return {
     }
@@ -9,6 +11,7 @@ var InvitationListBuilder = React.createClass({
 
     getInitialState: function () {
         return Object.assign({}, getStateFromStores(), {
+            subject: ''
         });
     },
 
@@ -22,16 +25,25 @@ var InvitationListBuilder = React.createClass({
     componentWillUnmount: function () {
     },
 
+    handleSubjectChange: function (event) {
+        this.setState({ subject: event.target.value });
+    },
+
+    handleClickAdd: function () {
+        InvitationListActionCreators.addInvitationList(this.state.subject);
+        this.setState({ subject: '' });
+    },
+
     render: function () {
         return (
             <section className="add-invitation-list">
                 <h1>Add Invitation List</h1>
-                <label>List Name:
+                <label>List Subject:
                     <div className="line">
-                        <input type="text" />
+                        <input type="text" value={this.state.subject} onChange={this.handleSubjectChange} />
                     </div>
                 </label>
-                <button>Submit</button>
+                <button onClick={this.handleClickAdd}>Submit</button>
             </section>
         );
     }

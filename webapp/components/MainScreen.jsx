@@ -72,18 +72,14 @@ var MainScreen = React.createClass({
 
                         <div className="room-list">
                             <h1>Chat Rooms</h1>
-                            <a href="#" onClick={this.handleClickChatRoom.bind(this, 1)} className={this.state.selectedChatRoom == 1 ? "active" : ""}>
-                                <span className="fa fa-chevron-right"></span>
-                                Bob's Room
-                            </a>
-                            <a href="#" onClick={this.handleClickChatRoom.bind(this, 2)} className={this.state.selectedChatRoom == 2 ? "active" : ""}>
-                                <span className="fa fa-chevron-right"></span>
-                                Steve's Room
-                            </a>
-                            <a href="#" onClick={this.handleClickChatRoom.bind(this, 3)} className={this.state.selectedChatRoom == 3 ? "active" : ""}>
-                                <span className="fa fa-chevron-right"></span>
-                                Brian's Room
-                            </a>
+                            {this.state.chatRooms.map(function (chatRoom) {
+                                return (
+                                    <a href="#" onClick={this.handleClickChatRoom.bind(this, chatRoom.id)} className={this.state.selectedChatRoom == chatRoom.id ? "active" : ""}>
+                                        <span className="fa fa-chevron-right"></span>
+                                        {chatRoom.room_name}
+                                    </a>
+                                );
+                            })}
                         </div>
 
                         {this.state.user.presenter ? <ChatRoomBuilder /> : null}
