@@ -40,6 +40,7 @@ var WelcomeScreen = React.createClass({
     },
 
     handleClickLogin: function (event) {
+        event.preventDefault();
         LoginActionCreators.login(this.state.email, this.state.password);
     },
 

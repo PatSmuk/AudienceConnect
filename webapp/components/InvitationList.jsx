@@ -68,7 +68,8 @@ var InvitationList = React.createClass({
         InvitationListActionCreators.addUserToList(this.props.id, selectedUser);
     },
 
-    handleRemoveUser: function (user_id) {
+    handleRemoveUser: function (user_id, event) {
+        event.preventDefault();
         InvitationListActionCreators.removeUserFromList(this.props.id, user_id);
     },
 
