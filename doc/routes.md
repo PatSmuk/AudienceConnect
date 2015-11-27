@@ -67,7 +67,7 @@ Returns all information for the user identified by `:user_id`.
 Example response:
 ```json
 {
-	"userName": "Johnny K",
+	"fullName": "Johnny K",
 	"avatar": "base64",
 }
 ```
@@ -144,7 +144,7 @@ Parameters:
 Example request:
 ```json
 {
-    "user": 10
+    "user_id": 10
 }
 ```
 
