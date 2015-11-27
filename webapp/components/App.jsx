@@ -1,9 +1,10 @@
 var React = require('react');
 
-var WelcomeScreen = require('./WelcomeScreen.jsx');
-var MainScreen = require('./MainScreen.jsx');
+var WelcomeScreen   = require('./WelcomeScreen.jsx');
+var MainScreen      = require('./MainScreen.jsx');
 
 var LoginStore = require('../stores/LoginStore');
+
 
 function getStateFromStores() {
     return {

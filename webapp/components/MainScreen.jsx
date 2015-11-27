@@ -1,7 +1,7 @@
 var React = require('react');
 
-var LoginStore = require('../stores/LoginStore');
-var ChatRoomStore = require('../stores/ChatRoomStore');
+var LoginStore      = require('../stores/LoginStore');
+var ChatRoomStore   = require('../stores/ChatRoomStore');
 
 var ChatRoom                = require('./ChatRoom.jsx');
 var ChatRoomBuilder         = require('./ChatRoomBuilder.jsx');

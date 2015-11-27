@@ -9,6 +9,10 @@ function getStateFromStores() {
 
 var Polls = React.createClass({
 
+    propTypes: {
+        room: React.PropTypes.string.isRequired
+    },
+
     getInitialState: function () {
         return Object.assign({}, getStateFromStores(), {
         });
