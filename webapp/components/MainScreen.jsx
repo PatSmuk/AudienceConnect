@@ -38,6 +38,10 @@ var MainScreen = React.createClass({
     },
 
     handleClickInvitationLists: function () {
+        if (!this.state.user.presenter) {
+            console.error('Tried to edit invitation lists as non-presenter.');
+            return;
+        }
         this.setState({
             editingInvitationLists: true,
             selectedChatRoom: null
@@ -59,10 +63,13 @@ var MainScreen = React.createClass({
                 </header>
                 <main>
                     <section className="room-section">
-                        <a href="#" onClick={this.handleClickInvitationLists} className={this.state.editingInvitationLists ? "active" : ""}>
-                            <span className="fa fa-lg fa-list"></span>
-                            Invitation Lists
-                        </a>
+                        {this.state.user.presenter ? (
+                            <a href="#" onClick={this.handleClickInvitationLists} className={this.state.editingInvitationLists ? "active" : ""}>
+                                <span className="fa fa-lg fa-list"></span>
+                                Invitation Lists
+                            </a>
+                        ) : null}
+
                         <div className="room-list">
                             <h1>Chat Rooms</h1>
                             <a href="#" onClick={this.handleClickChatRoom.bind(this, 1)} className={this.state.selectedChatRoom == 1 ? "active" : ""}>
@@ -78,14 +85,15 @@ var MainScreen = React.createClass({
                                 Brian's Room
                             </a>
                         </div>
-                        <ChatRoomBuilder />
+
+                        {this.state.user.presenter ? <ChatRoomBuilder /> : null}
                     </section>
 
                     {this.state.editingInvitationLists ? <InvitationLists /> : null}
                     {this.state.editingInvitationLists ? <InvitationListBuilder /> : null}
 
-                    {this.state.selectedChatRoom ? <ChatRoom /> : null}
-                    {this.state.selectedChatRoom ? <Polls /> : null}
+                    {this.state.selectedChatRoom ? <ChatRoom room={selectedChatRoom} /> : null}
+                    {this.state.selectedChatRoom ? <Polls room={selectedChatRoom} /> : null}
                 </main>
             </div>
         );
