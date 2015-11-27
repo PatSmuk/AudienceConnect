@@ -1,6 +1,7 @@
 var Dispatcher = require('../dispatcher/Dispatcher');
 var ActionTypes = require('../constants/Constants').ActionTypes;
 var ChatRoomActionCreators = require('./ChatRoomActionCreators');
+var InvitationListActionCreators = require('./InvitationListActionCreators');
 
 var request = require('superagent');
 
@@ -33,6 +34,9 @@ var LoginActionCreators = {
         });
 
         ChatRoomActionCreators.fetchChatRooms(email, password);
+        if (user.presenter) {
+            InvitationListActionCreators.fetchInvitationLists(email, password);
+        }
     },
 
     receiveLoginError: function (error) {
