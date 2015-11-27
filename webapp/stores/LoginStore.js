@@ -8,6 +8,7 @@ var _isLoggedIn = false;
 var _error = null;
 var _email = null;
 var _password = null;
+var _user = null;
 
 var CHANGE_EVENT = 'change';
 
@@ -43,6 +44,10 @@ var LoginStore = Object.assign({}, EventEmitter.prototype, {
 
     getPassword: function () {
         return _password;
+    },
+
+    getUser: function () {
+        return _user;
     }
 });
 
@@ -55,23 +60,25 @@ Dispatcher.register(function (action) {
             _isLoggingIn = true;
             _isLoggedIn = false;
             _error = null;
+            _email = null;
+            _password = null;
+            _user = null;
+
             LoginStore.emitChange();
             break;
         }
 
         case ActionTypes.RECEIVE_LOGIN_RESPONSE: {
             var error = action.error;
+            _error = null;
+            _email = action.email;
+            _password = action.password;
+            _user = action.user;
             _isLoggingIn = false;
             _isLoggedIn = !error;
 
-            if (!error) {
-                _isLoggedIn = true;
-                _error = null;
-            }
-            else {
-                _isLoggingIn = false;
-
-                 if (error.status == 401) {
+            if (error) {
+                if (error.status == 401) {
                     _error = 'Invalid email or password.';
                 }
                 else if (error.status >= 500 && error.status < 600) {

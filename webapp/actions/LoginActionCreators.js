@@ -15,16 +15,17 @@ var LoginActionCreators = {
         .get('/users/me')
         .auth(email, password)
         .end(function (err, res) {
-            LoginActionCreators.receiveLoginResponse(err, email, password);
+            LoginActionCreators.receiveLoginResponse(err, email, password, err ? null : res.body);
         });
     },
 
-    receiveLoginResponse: function (error, email, password) {
+    receiveLoginResponse: function (error, email, password, user) {
         Dispatcher.dispatch({
             type: ActionTypes.RECEIVE_LOGIN_RESPONSE,
             error: error,
             email: email,
-            password: password
+            password: password,
+            user: user
         })
     }
 };
