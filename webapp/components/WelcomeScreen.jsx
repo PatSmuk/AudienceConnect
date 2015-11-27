@@ -41,7 +41,16 @@ var WelcomeScreen = React.createClass({
 
     handleClickLogin: function (event) {
         event.preventDefault();
+
+        if (this.state.email === '' || this.state.password === '')
+            return;
+
         LoginActionCreators.login(this.state.email, this.state.password);
+    },
+
+    handleInputKeyPress: function (event) {
+        if (event.which == 13)
+            this.handleClickLogin(event);
     },
 
     render: function () {
@@ -68,12 +77,12 @@ var WelcomeScreen = React.createClass({
                             {errorMessage}
                             <div className="line">
                                 <label>Email:
-                                    <input type="email" value={this.state.email} onChange={this.handleEmailChange} />
+                                    <input type="email" onKeyPress={this.handleInputKeyPress} value={this.state.email} onChange={this.handleEmailChange} />
                                 </label>
                             </div>
                             <div className="line">
                                 <label>Password:
-                                    <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
+                                    <input type="password" onKeyPress={this.handleInputKeyPress} value={this.state.password} onChange={this.handlePasswordChange} />
                                 </label>
                             </div>
                             <div className="line">
