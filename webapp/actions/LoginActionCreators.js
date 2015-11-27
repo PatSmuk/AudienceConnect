@@ -4,6 +4,7 @@ var ActionTypes = require('../constants/Constants').ActionTypes;
 var request = require('superagent');
 
 var LoginActionCreators = {
+
     login: function (email, password) {
         Dispatcher.dispatch({
             type: ActionTypes.LOGIN,
@@ -26,7 +27,7 @@ var LoginActionCreators = {
             email: email,
             password: password,
             user: user
-        })
+        });
     }
 };
 
