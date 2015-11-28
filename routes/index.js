@@ -42,8 +42,9 @@ router.post('/register', function (req, res, next) {
     var password = req.body.password;
 
     database().then(function (client) {
-        return client[0].query("SELECT * FROM users WHERE email = $1", [email]).then(function (results) {
+        client[0].query("SELECT * FROM users WHERE email = $1", [email]).then(function (results) {
             if (results.rowCount > 0) {
+                client[1]();
                 return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
             }
 
@@ -51,6 +52,7 @@ router.post('/register', function (req, res, next) {
                 return client[0].query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash]);
             })
             .then(function () {
+                client[1]();
                 res.json({});
             });
         })

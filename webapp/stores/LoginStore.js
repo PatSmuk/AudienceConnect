@@ -3,12 +3,12 @@ var ActionTypes = require('../constants/Constants').ActionTypes;
 var EventEmitter = require('events').EventEmitter;
 
 
-var _isLoggingIn = false;
 var _isLoggedIn = false;
 var _error = null;
 var _email = null;
 var _password = null;
 var _user = null;
+var _registrationSuccessful = false;
 
 var CHANGE_EVENT = 'change';
 
@@ -24,10 +24,6 @@ var LoginStore = Object.assign({}, EventEmitter.prototype, {
 
     removeChangeListener: function (callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
-
-    isLoggingIn: function () {
-        return _isLoggingIn;
     },
 
     isLoggedIn: function () {
@@ -48,6 +44,10 @@ var LoginStore = Object.assign({}, EventEmitter.prototype, {
 
     getUser: function () {
         return _user;
+    },
+    
+    isRegistrationSuccessful: function () {
+        return _registrationSuccessful;
     }
 });
 
@@ -56,25 +56,13 @@ Dispatcher.register(function (action) {
 
     switch (action.type) {
 
-        case ActionTypes.LOGIN: {
-            _isLoggingIn = true;
-            _isLoggedIn = false;
-            _error = null;
-            _email = null;
-            _password = null;
-            _user = null;
-
-            LoginStore.emitChange();
-            break;
-        }
-
         case ActionTypes.RECEIVE_LOGIN_SUCCESS: {
-            _isLoggingIn = false;
             _isLoggedIn = true;
             _error = null;
             _email = action.email;
             _password = action.password;
             _user = action.user;
+            _registrationSuccessful = false;
 
             LoginStore.emitChange();
             break;
@@ -82,11 +70,11 @@ Dispatcher.register(function (action) {
 
         case ActionTypes.RECEIVE_LOGIN_ERROR: {
             var error = action.error;
-            _isLoggingIn = false;
             _isLoggedIn = false;
             _email = null;
             _password = null;
             _user = null;
+            _registrationSuccessful = false;
 
             if (error.status == 401) {
                 _error = 'Invalid email or password.';
@@ -98,6 +86,29 @@ Dispatcher.register(function (action) {
                 _error = 'Unknown error: ' + error.message;
             }
 
+            LoginStore.emitChange();
+            break;
+        }
+        
+        case ActionTypes.RECEIVE_REGISTRATION_SUCCESS: {
+            _registrationSuccessful = true;
+            LoginStore.emitChange();
+            break;
+        }
+        
+        case ActionTypes.RECEIVE_REGISTRATION_ERROR: {
+            _registrationSuccessful = false;
+            error = action.error;
+            if (error.status == 400) {
+                _error = 'Email is invalid or in use.';
+            }
+            else if (error.status >= 500 && error.status < 600) {
+                _error = 'Internal server error.';
+            }
+            else {
+                _error = error.message;
+            }
+            
             LoginStore.emitChange();
             break;
         }

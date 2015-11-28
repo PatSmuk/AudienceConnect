@@ -5,8 +5,8 @@ var LoginActionCreators = require('../actions/LoginActionCreators');
 
 function getStateFromStores() {
     return {
-        loggingIn: LoginStore.isLoggingIn(),
-        error: LoginStore.getError()
+        error: LoginStore.getError(),
+        registrationSuccessful: LoginStore.isRegistrationSuccessful()
     };
 }
 
@@ -15,12 +15,17 @@ var WelcomeScreen = React.createClass({
     getInitialState: function () {
         return Object.assign({}, getStateFromStores(), {
             email: '',
-            password: ''
+            password: '',
+            loading: false
         });
     },
 
     _onChange: function () {
-        this.setState(getStateFromStores());
+        var newState = getStateFromStores();
+        if (this.state.loading && (newState.error || newState.registrationSuccessful)) {
+            newState.loading = false;
+        }
+        this.setState(newState);
     },
 
     componentDidMount: function () {
@@ -44,6 +49,7 @@ var WelcomeScreen = React.createClass({
             return;
 
         LoginActionCreators.login(this.state.email, this.state.password);
+        this.setState({ loading: true });
     },
 
     handleInputKeyPress: function (event) {
@@ -56,12 +62,16 @@ var WelcomeScreen = React.createClass({
             return;
 
         LoginActionCreators.register(this.state.email, this.state.password);
+        this.setState({ loading: true });
     },
 
     render: function () {
-        var errorMessage;
+        var feedback;
         if (this.state.error) {
-            errorMessage = <div className="message-box error">{this.state.error}</div>;
+            feedback = <div className="message-box error">{this.state.error}</div>;
+        }
+        else if (this.state.registrationSuccessful) {
+            feedback = <div className="message-box success">Registration successful.</div>;
         }
 
         return (
@@ -71,7 +81,7 @@ var WelcomeScreen = React.createClass({
                     <h1>Audience Connect</h1>
                     <h3>Please Sign In or Register</h3>
 
-                    {this.state.loggingIn ? (
+                    {this.state.loading ? (
                         <div className="login-form">
                             <div className="loading">
                                 <img src="/img/ring.svg" alt="Loading" />
@@ -79,7 +89,7 @@ var WelcomeScreen = React.createClass({
                         </div>
                     ):(
                         <div className="login-form">
-                            {errorMessage}
+                            {feedback}
                             <div className="line">
                                 <label>Email:
                                     <input type="email" onKeyPress={this.handleInputKeyPress} value={this.state.email} onChange={this.handleEmailChange} />

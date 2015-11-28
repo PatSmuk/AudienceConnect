@@ -9,6 +9,8 @@ module.exports = {
         RECEIVE_INVITATION_LISTS: null,
         RECEIVE_INVITATION_LIST: null,
         RECEIVE_CHAT_MESSAGES: null,
-        RECEIVE_POLLS: null
+        RECEIVE_POLLS: null,
+        RECEIVE_REGISTRATION_SUCCESS: null,
+        RECEIVE_REGISTRATION_ERROR: null
     })
 };
