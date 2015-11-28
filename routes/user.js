@@ -5,9 +5,13 @@ var database = require('../database');
 
 
 router.get('/', auth.requireLevel('presenter'), function (req, res, next) {
-    database.query('SELECT id FROM users')
-    .then(function (results) {
-        return res.json(results.map(function (row) { return row.id; }));
+    database().then(function (client) {
+        return client[0].query('SELECT id FROM users')
+        .then(function (results) {
+            client[1]();
+            return res.json(results.rows.map(function (row) { return row.id; }));
+        })
+        .catch(function (err) { client[1](); throw err; });
     })
     .catch(next);
 });
@@ -36,16 +40,20 @@ router.get('/:user_id/', auth.requireLevel('logged_in'), function (req, res, nex
 
     var user_id = req.params.user_id;
 
-    database.query("SELECT full_name, avatar FROM users WHERE id = $1", [user_id])
-    .then(function (results) {
-        if (results.length == 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+    database().then(function (client) {
+        return client[0].query("SELECT full_name, avatar FROM users WHERE id = $1", [user_id])
+        .then(function (results) {
+            client[1]();
+            if (results.rowCount == 0) {
+                return res.status(404).json({ error: 'User not found' });
+            }
 
-        return res.send({
-            fullName: results[0].full_name,
-            avatar: results[0].avatar
-        });
+            return res.send({
+                fullName: results.rows[0].full_name,
+                avatar: results.rows[0].avatar
+            });
+        })
+        .catch(function (err) { client[1](); throw err; });
     })
     .catch(next);
 });

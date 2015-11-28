@@ -41,17 +41,20 @@ router.post('/register', function (req, res, next) {
     var email = req.body.email;
     var password = req.body.password;
 
-    database.query("SELECT * FROM users WHERE email = $1", [email]).then(function (results) {
-        if (results.length > 0) {
-            return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
-        }
+    database().then(function (client) {
+        return client[0].query("SELECT * FROM users WHERE email = $1", [email]).then(function (results) {
+            if (results.rowCount > 0) {
+                return res.status(400).json({errors: [{param: 'email', msg: 'Email already in use', value: email}]});
+            }
 
-        auth.hashPassword(password).then(function (hash) {
-            return database.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash])
+            return auth.hashPassword(password).then(function (hash) {
+                return client[0].query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [email, hash]);
+            })
+            .then(function () {
+                res.json({});
+            });
         })
-        .then(function () {
-            res.json({});
-        });
+        .catch(function (err) { client[1](); next(err); });
     })
     .catch(next);
 });

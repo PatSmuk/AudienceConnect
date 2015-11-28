@@ -22,12 +22,16 @@ describe('POST /register', function () {
     var goodPassword = 'test';
 
     beforeEach('ensure the email is not taken', function (done) {
-        database.query('DELETE FROM users WHERE email = $1', [goodEmail])
-        .then(function () {
-            done();
+        database().then(function (client) {
+            return client[0].query('DELETE FROM users WHERE email = $1', [goodEmail])
+            .then(function () {
+                client[1]();
+                done();
+            })
+            .catch(function (err) { client[1](); done(err); });
         })
         .catch(done);
-    })
+    });
 
     it('allows people to create accounts', function (done) {
         request(app)

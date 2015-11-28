@@ -22,24 +22,28 @@ describe('GET /invitationLists/', function () {
 
 		testUtil.insertUser(presenter)
 		.then(function (id) {
-			return database.query(
-				'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2) RETURNING id',
-				[id, invitationList.subject]
-			)
-		})
-		.then(function (results) {
-			invitationList.id = results[0].id;
+			return database().then(function (client) {
+                return client[0].query(
+                    'INSERT INTO invitation_lists (presenter, subject) VALUES ($1, $2) RETURNING id',
+                    [id, invitationList.subject]
+                )
+                .then(function (results) {
+                    client[1]();
+                    invitationList.id = results.rows[0].id;
 
-			request(app)
-            .get('/invitationLists/')
-            .auth(presenter.email, presenter.password)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .expect(function (res) {
-                assert.deepEqual(res.body, [invitationList]);
-            })
-            .end(done);
-		})
+                    request(app)
+                    .get('/invitationLists/')
+                    .auth(presenter.email, presenter.password)
+                    .expect('Content-Type', /json/)
+                    .expect(200)
+                    .expect(function (res) {
+                        assert.deepEqual(res.body, [invitationList]);
+                    })
+                    .end(done);
+                })
+                .catch(function (err) { client[1](); throw err; });
+            });
+        })
 		.catch(done);
 	});
 
@@ -305,12 +309,16 @@ describe('POST /invitationLists/:list_id/', function () {
         .end(function (err) {
             if (err) done(err);
 
-            database.query("SELECT * FROM invitation_list_members WHERE invitation_list = $1", list.id)
-            .then(function (results) {
-                if (results.length != 1) {
-                    return 'Expected one person on the invitation list';
-                }
-                done();
+            database().then(function (client) {
+                return client[0].query("SELECT * FROM invitation_list_members WHERE invitation_list = $1", [list.id])
+                .then(function (results) {
+                    client[1]();
+                    if (results.rowCount != 1) {
+                        return 'Expected one person on the invitation list';
+                    }
+                    done();
+                })
+                .catch(function (err) { client[1](); done(err); })
             });
         });
     });
@@ -427,12 +435,15 @@ describe('DELETE /invitationLists/:list_id/:user_id/', function () {
         .end(function (err) {
             if (err) done(err);
 
-            database.query("SELECT * FROM invitation_list_members WHERE invitation_list = $1", list.id)
-            .then(function (results) {
-                if (results.length != 0) {
-                    return 'Expected zero people on the invitation list';
-                }
-                done();
+            database().then(function (client) {
+                return client[0].query("SELECT * FROM invitation_list_members WHERE invitation_list = $1", [list.id])
+                .then(function (results) {
+                    if (results.rowCount != 0) {
+                        return 'Expected zero people on the invitation list';
+                    }
+                    done();
+                })
+                .catch(function (err) { client[1](); done(err); });
             });
         });
     });

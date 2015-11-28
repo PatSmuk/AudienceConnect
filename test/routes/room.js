@@ -228,14 +228,19 @@ describe('POST /rooms/', function () {
     it('does not add a chat room if the invitation list does not exist', function (done) {
         var badInvitationList = invitationList.id + 100;
         // Make sure our non-existent chat room doesn't exist.
-        database.query('DELETE FROM chat_rooms WHERE id = $1', [badInvitationList])
-        .then(function () {
-            request(app)
-                .post('/rooms/')
-                .auth(presenter.email, presenter.password)
-                .send({ roomName: goodRoomName, invitationList: badInvitationList })
-                .expect('Content-Type', /json/)
-                .expect(400, done);
+        database().then(function (client) {
+            return client[0].query('DELETE FROM chat_rooms WHERE id = $1', [badInvitationList])
+            .then(function () {
+                client[1]();
+
+                request(app)
+                    .post('/rooms/')
+                    .auth(presenter.email, presenter.password)
+                    .send({ roomName: goodRoomName, invitationList: badInvitationList })
+                    .expect('Content-Type', /json/)
+                    .expect(400, done);
+            })
+            .catch(function (err) { client[1](); throw err; })
         })
         .catch(done);
     });
@@ -354,10 +359,14 @@ describe('DELETE /rooms/:room_id/', function () {
        .expect(200)
        .end(function (err) {
            if (err) done(err);
-           database.query('SELECT id FROM chat_rooms WHERE id = $1',[goodRoom])
-           .then(function (results) {
-               assert.equal(results.length, 0, 'Room should not show up in SELECT query');
-               done();
+           database().then(function (client) {
+               return client[0].query('SELECT id FROM chat_rooms WHERE id = $1',[goodRoom])
+                .then(function (results) {
+                    client[1]();
+                    assert.equal(results.rowCount, 0, 'Room should not show up in SELECT query');
+                    done();
+                })
+                .catch(function (err) { client[1](); throw err; })
            })
            .catch(done);
        });
@@ -690,46 +699,60 @@ describe('POST /rooms/:room_id/messages/', function () {
 
     it('allows room owners to send messages', function (done) {
 
-        database.query('DELETE FROM messages WHERE room = $1', [chatRoom.id])
-        .then(function () {
+        database().then(function (client) {
+            return client[0].query('DELETE FROM messages WHERE room = $1', [chatRoom.id])
+            .then(function () {
 
-            request(app)
-            .post('/rooms/' + chatRoom.id + '/messages/')
-            .auth(user.email, user.password)
-            .send({ message: good_message_text })
-            .expect(200)
-            .end(function (err) {
-                if (err) return done(err);
+                request(app)
+                .post('/rooms/' + chatRoom.id + '/messages/')
+                .auth(user.email, user.password)
+                .send({ message: good_message_text })
+                .expect(200)
+                .end(function (err) {
+                    if (err) {
+                        client[1]();
+                        return done(err);
+                    }
 
-                database.query("SELECT * FROM messages WHERE room = $1", [chatRoom.id])
-                .then(function (results) {
-                    assert.equal(results.length, 1, 'Expected 1 message in the chat room');
-                    done();
+                    client[0].query("SELECT * FROM messages WHERE room = $1", [chatRoom.id])
+                    .then(function (results) {
+                        client[1]();
+                        assert.equal(results.rowCount, 1, 'Expected 1 message in the chat room');
+                        done();
+                    });
                 });
-            });
+            })
+            .catch(function (err) { client[1](); throw err; })
         })
         .catch(done);
     });
 
     it('allows audience members to send messages', function (done) {
 
-        database.query('DELETE FROM messages WHERE room = $1', [chatRoom.id])
-        .then(function () {
+        database().then(function (client) {
+            return client[0].query('DELETE FROM messages WHERE room = $1', [chatRoom.id])
+            .then(function () {
 
-            request(app)
-            .post('/rooms/' + chatRoom.id + '/messages/')
-            .auth(presenter.email, presenter.password)
-            .send({ message: good_message_text })
-            .expect(200)
-            .end(function (err) {
-                if (err) return done(err);
+                request(app)
+                .post('/rooms/' + chatRoom.id + '/messages/')
+                .auth(presenter.email, presenter.password)
+                .send({ message: good_message_text })
+                .expect(200)
+                .end(function (err) {
+                    if (err) {
+                        client[1]();
+                        return done(err);
+                    }
 
-                database.query("SELECT * FROM messages WHERE room = $1", [chatRoom.id])
-                .then(function (results) {
-                    assert.equal(results.length, 1, 'Expected 1 message in the chat room');
-                    done();
+                    client[0].query("SELECT * FROM messages WHERE room = $1", [chatRoom.id])
+                    .then(function (results) {
+                        client[1]();
+                        assert.equal(results.rowCount, 1, 'Expected 1 message in the chat room');
+                        done();
+                    });
                 });
-            });
+            })
+            .catch(function (err) { client[1](); throw err; })
         })
         .catch(done);
     });
@@ -888,13 +911,18 @@ describe('DELETE /rooms/:room_id/messages/:message_id', function () {
             .end(function (err) {
                 if (err) done(err);
 
-                database.query('SELECT censored FROM messages WHERE id = $1', [message.id])
-                .then(function (results) {
-                    if (results.length != 1)
-                        return 'Expected exactly one message of ID ' + message.id;
-                    if (!results[0].censored)
-                        return 'Expected censored flag to be set';
-                    done();
+                database().then(function (client) {
+                    client[0].query('SELECT censored FROM messages WHERE id = $1', [message.id])
+                    .then(function (results) {
+                        client[1]();
+
+                        if (results.rowCount != 1)
+                            return 'Expected exactly one message of ID ' + message.id;
+                        if (!results.rows[0].censored)
+                            return 'Expected censored flag to be set';
+                        done();
+                    })
+                    .catch(function (err) { client[1](); done(err); })
                 });
             })
     });
@@ -1303,10 +1331,14 @@ describe('POST /rooms/:room_id/close', function () {
        .expect(200)
        .end(function (err) {
            if (err) done(err);
-           database.query('SELECT end_timestamp FROM chat_rooms WHERE id = $1',[goodRoom])
-           .then(function (results) {
-               assert.notEqual(results[0].end_timestamp, null, 'end_timestamp should not be null');
-               done();
+           database().then(function (client) {
+               return client[0].query('SELECT end_timestamp FROM chat_rooms WHERE id = $1',[goodRoom])
+                .then(function (results) {
+                    client[1]();
+                    assert.notEqual(results.rows[0].end_timestamp, null, 'end_timestamp should not be null');
+                    done();
+                })
+                .catch(function (err) { client[1](); throw err; })
            })
            .catch(done);
        });
@@ -1338,13 +1370,18 @@ describe('POST /rooms/:room_id/close', function () {
     });
 
     it('requires the room to be open', function (done) {
-        database.query("UPDATE chat_rooms SET end_timestamp = $1 WHERE id = $2", [new Date(), chatRoom.id])
-        .then(function () {
-            request(app)
-                .post('/rooms/'+ chatRoom.id +'/close')
-                .auth(presenter.email, presenter.password)
-                .expect(400)
-                .end(done);
+        database().then(function (client) {
+            return client[0].query("UPDATE chat_rooms SET end_timestamp = $1 WHERE id = $2", [new Date(), chatRoom.id])
+            .then(function () {
+                client[1]();
+                
+                request(app)
+                    .post('/rooms/'+ chatRoom.id +'/close')
+                    .auth(presenter.email, presenter.password)
+                    .expect(400)
+                    .end(done);
+            })
+            .catch(function (err) { client[1](); throw err; })
         })
         .catch(done);
     });

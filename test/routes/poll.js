@@ -28,12 +28,16 @@ describe('POST /polls/:poll_id/vote', function () {
     };
 
     beforeEach('delete the users if they exist', function (done) {
-        database.query(
-            'DELETE FROM users WHERE email IN ($1, $2, $3)',
-            [user.email, new_user.email, presenter.email]
-        )
-        .then(function () {
-            done();
+        database().then(function (client) {
+            client[0].query(
+                'DELETE FROM users WHERE email IN ($1, $2, $3)',
+                [user.email, new_user.email, presenter.email]
+            )
+            .then(function () {
+                client[1]();
+                done();
+            })
+            .catch(function (err) { client[1](); throw err; });
         })
         .catch(done);
     });
@@ -183,15 +187,20 @@ describe('POST /polls/:poll_id/vote', function () {
 
     //this tests the fucking duplicate votes
     it("doesn't allow duplicate votes", function (done) {
-        database.query("INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)", [poll.id, user.id, ans.id])
-        .then(function () {
-            request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .auth(user.email, user.password)
-            .send({ answer: ans.id })
-            .expect('Content-Type', /json/)
-            .expect(400)
-            .end(done);
+        database().then(function (client) {
+            client[0].query("INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)", [poll.id, user.id, ans.id])
+            .then(function () {
+                client[1]();
+
+                request(app)
+                .post('/polls/' + poll.id + '/vote')
+                .auth(user.email, user.password)
+                .send({ answer: ans.id })
+                .expect('Content-Type', /json/)
+                .expect(400)
+                .end(done);
+            })
+            .catch(function (err) { client[1](); throw err; });
         })
         .catch(done);
     });
@@ -207,13 +216,18 @@ describe('POST /polls/:poll_id/vote', function () {
     });
 
     it("doesn't allow voting in closed polls", function (done) {
-        database.query('UPDATE polls SET end_timestamp = $1 WHERE id = $2', [new Date(), poll.id])
-        .then(function () {
-            request(app)
-            .post('/polls/' + poll.id + '/vote')
-            .auth(user.email, user.password)
-            .expect('Content-Type', /json/)
-            .expect(400, done);
+        database().then(function (client) {
+            client[0].query('UPDATE polls SET end_timestamp = $1 WHERE id = $2', [new Date(), poll.id])
+            .then(function () {
+                client[1]();
+
+                request(app)
+                .post('/polls/' + poll.id + '/vote')
+                .auth(user.email, user.password)
+                .expect('Content-Type', /json/)
+                .expect(400, done);
+            })
+            .catch(function (err) { client[1](); throw err; });
         })
         .catch(done);
     });
@@ -347,11 +361,15 @@ describe('POST /polls/:poll_id/close', function () {
         .end(function (err) {
             if (err) done(err);
 
-            database.query("SELECT end_timestamp FROM polls WHERE id = $1", [poll.id])
-            .then(function (results) {
-                if (results[0].end_timestamp === null)
-                    return "The poll didn't get closed, end_timestamp is still NULL";
-                done();
+            database().then(function (client) {
+                client[0].query("SELECT end_timestamp FROM polls WHERE id = $1", [poll.id])
+                .then(function (results) {
+                    client[1]();
+                    if (results.rows[0].end_timestamp === null)
+                        return "The poll didn't get closed, end_timestamp is still NULL";
+                    done();
+                })
+                .catch(function (err) { client[1](); throw err; });
             })
             .catch(done);
         });
@@ -395,13 +413,17 @@ describe('POST /polls/:poll_id/close', function () {
     });
 
     it("doesn't allow closing the same poll twice", function (done) {
-        database.query('UPDATE polls SET end_timestamp = $1 WHERE id = $2', [new Date(), poll.id])
-        .then(function () {
-            request(app)
-            .post('/polls/' + poll.id + '/close')
-            .auth(presenter.email, presenter.password)
-            .expect('Content-Type', /json/)
-            .expect(400, done);
+        database().then(function (client) {
+            client[0].query('UPDATE polls SET end_timestamp = $1 WHERE id = $2', [new Date(), poll.id])
+            .then(function () {
+                client[1]();
+                request(app)
+                .post('/polls/' + poll.id + '/close')
+                .auth(presenter.email, presenter.password)
+                .expect('Content-Type', /json/)
+                .expect(400, done);
+            })
+            .catch(function (err) { client[1](); throw err; });
         })
         .catch(done);
     });
