@@ -3,6 +3,7 @@ var React = require('react');
 var PollBuilder = require('./PollBuilder.jsx');
 
 var ChatRoomStore = require('../stores/ChatRoomStore');
+var LoginStore = require('../stores/LoginStore');
 
 var ChatRoomActionCreators = require('../actions/ChatRoomActionCreators');
 
@@ -68,7 +69,8 @@ var Polls = React.createClass({
                         </div>
                     ))}
                 </div>
-                <PollBuilder room={this.props.room} />
+
+                {LoginStore.getUser().presenter ? <PollBuilder room={this.props.room} /> : null}
             </section>
         );
     }
