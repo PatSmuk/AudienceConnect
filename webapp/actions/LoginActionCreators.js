@@ -7,6 +7,9 @@ var request = require('superagent');
 
 var LoginActionCreators = {
 
+    register: function (email, password) {
+    },
+
     login: function (email, password) {
         Dispatcher.dispatch({
             type: ActionTypes.LOGIN,

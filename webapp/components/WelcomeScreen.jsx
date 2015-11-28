@@ -39,9 +39,7 @@ var WelcomeScreen = React.createClass({
         this.setState({ password: event.target.value });
     },
 
-    handleClickLogin: function (event) {
-        event.preventDefault();
-
+    handleLogin: function () {
         if (this.state.email === '' || this.state.password === '')
             return;
 
@@ -50,7 +48,14 @@ var WelcomeScreen = React.createClass({
 
     handleInputKeyPress: function (event) {
         if (event.which == 13)
-            this.handleClickLogin(event);
+            this.handleLogin();
+    },
+
+    handleRegister: function () {
+        if (this.state.email === '' || this.state.password === '')
+            return;
+
+        LoginActionCreators.register(this.state.email, this.state.password);
     },
 
     render: function () {
@@ -87,8 +92,8 @@ var WelcomeScreen = React.createClass({
                             </div>
                             <div className="line">
                                 <div className="buttons">
-                                    <button>Register</button>
-                                    <button onClick={this.handleClickLogin}>Sign In</button>
+                                    <button onClick={this.handleRegister}>Register</button>
+                                    <button onClick={this.handleLogin}>Sign In</button>
                                 </div>
                             </div>
                         </div>
