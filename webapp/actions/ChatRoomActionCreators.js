@@ -77,6 +77,58 @@ var ChatRoomActionCreators = {
             }
             ChatRoomActionCreators.fetchMessages(room_id);
         });
+    },
+
+    fetchPolls: function (room_id) {
+        request
+        .get('/rooms/'+room_id+'/polls/')
+        .auth(LoginStore.getEmail(), LoginStore.getPassword())
+        .end(function (err, res) {
+            if (err) {
+                console.error(err);
+                console.dir(res.body);
+                return;
+            }
+            ChatRoomActionCreators.receivePolls(room_id, res.body);
+        });
+    },
+
+    receivePolls: function (room_id, polls) {
+        Dispatcher.dispatch({
+            type: ActionTypes.RECEIVE_POLLS,
+            room_id: room_id,
+            polls: polls
+        });
+    },
+
+    vote: function (room_id, poll_id, answer_id) {
+        request
+        .post('/polls/'+poll_id+'/vote')
+        .auth(LoginStore.getEmail(), LoginStore.getPassword())
+        .send({ answer: answer_id })
+        .end(function (err, res) {
+            if (err) {
+                console.error(err);
+                console.dir(res.body);
+                return;
+            }
+            ChatRoomActionCreators.fetchPolls(room_id);
+        });
+    },
+
+    addPoll: function (room_id, question, answers) {
+        request
+        .post('/rooms/'+room_id+'/polls')
+        .auth(LoginStore.getEmail(), LoginStore.getPassword())
+        .send({ question: question, answers: answers })
+        .end(function (err, res) {
+            if (err) {
+                console.error(err);
+                console.dir(res.body);
+                return;
+            }
+            ChatRoomActionCreators.fetchPolls(room_id);
+        });
     }
 };
 

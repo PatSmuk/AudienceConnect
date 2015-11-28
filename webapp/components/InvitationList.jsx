@@ -4,6 +4,7 @@ var InvitationListActionCreators = require('../actions/InvitationListActionCreat
 
 var InvitationListStore = require('../stores/InvitationListStore');
 var UserStore = require('../stores/UserStore');
+var LoginStore = require('../stores/LoginStore');
 
 function getStateFromStores(list_id) {
     var list = InvitationListStore.getInvitationList(list_id);
@@ -11,11 +12,13 @@ function getStateFromStores(list_id) {
 
     if (users && list.users) {
         users = users.filter(function (user_id) {
+            if (user_id == LoginStore.getUser().id)
+                return false;
+
             var found = false;
             list.users.forEach(function (list_member) {
                 if (user_id == list_member) {
                     found = true;
-                    console.log('Found '+user_id);
                 }
             });
             return !found;

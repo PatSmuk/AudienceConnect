@@ -8,6 +8,7 @@ module.exports = {
         RECEIVE_CHAT_ROOMS: null,
         RECEIVE_INVITATION_LISTS: null,
         RECEIVE_INVITATION_LIST: null,
-        RECEIVE_CHAT_MESSAGES: null
+        RECEIVE_CHAT_MESSAGES: null,
+        RECEIVE_POLLS: null
     })
 };

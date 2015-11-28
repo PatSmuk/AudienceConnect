@@ -2,9 +2,13 @@ var React = require('react');
 
 var PollBuilder = require('./PollBuilder.jsx');
 
-function getStateFromStores() {
+var ChatRoomStore = require('../stores/ChatRoomStore');
+
+
+function getStateFromStores(room_id) {
     return {
-    }
+        polls: ChatRoomStore.getChatRoom(room_id).polls
+    };
 }
 
 var Polls = React.createClass({
@@ -14,18 +18,20 @@ var Polls = React.createClass({
     },
 
     getInitialState: function () {
-        return Object.assign({}, getStateFromStores(), {
+        return Object.assign({}, getStateFromStores(this.props.room), {
         });
     },
 
     _onChange: function () {
-        this.setState(getStateFromStores());
+        this.setState(getStateFromStores(this.props.room));
     },
 
     componentDidMount: function () {
+        ChatRoomStore.addChangeListener(this._onChange);
     },
 
     componentWillUnmount: function () {
+        ChatRoomStore.removeChangeListener(this._onChange);
     },
 
     render: function () {
@@ -33,22 +39,22 @@ var Polls = React.createClass({
             <section className="poll-section">
                 <div className="polls">
                     <h1>Polls</h1>
-                    <div className="poll">
-                        <div className="question">Do you want to RP?</div>
-                        <ol className="answers">
-                            <li><a href="#" className="selected">Yes</a><span className="votes"> — 10 votes</span></li>
-                            <li><a href="#">No</a><span className="votes"> — 20 votes</span></li>
-                        </ol>
-                    </div>
-                    <div className="poll">
-                        <div className="question">Do you wish to continue?</div>
-                        <ol className="answers">
-                            <li><a href="#">Yes</a></li>
-                            <li><a href="#" className="selected">No</a></li>
-                        </ol>
-                    </div>
+
+                    {this.state.polls.map(poll => (
+                        <div key={poll.id} className="poll">
+                            <div className="question">{poll.question}</div>
+                            <ol className="answers">
+                                {poll.answers.map(answer => (
+                                    <li key={answer.id}>
+                                        <a href="#" className="selected">{answer.answer}</a>
+                                        <span className="votes"> — {answer.votes} votes</span>
+                                    </li>
+                                ))}
+                            </ol>
+                        </div>
+                    ))}
                 </div>
-                <PollBuilder />
+                <PollBuilder room={this.props.room} />
             </section>
         );
     }

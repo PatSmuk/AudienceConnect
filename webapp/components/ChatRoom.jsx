@@ -48,12 +48,17 @@ var ChatRoom = React.createClass({
         this.setState({ message: event.target.value });
     },
 
-    handleClickSend: function (event) {
+    handleClickSend: function () {
         if (this.state.message === '')
             return;
 
         ChatRoomActionCreators.sendMessage(this.props.room, this.state.message);
         this.setState({ message: '' });
+    },
+
+    handleInputKeyPress: function (event) {
+        if (event.which == 13)
+            this.handleClickSend();
     },
 
     render: function () {
@@ -83,7 +88,7 @@ var ChatRoom = React.createClass({
                     }) : null}
                 </div>
                 <div className="inputs">
-                    <input type="text" value={this.state.message} onChange={this.handleChangeMessage} />
+                    <input type="text" value={this.state.message} onChange={this.handleChangeMessage} onKeyPress={this.handleInputKeyPress} />
                     <button onClick={this.handleClickSend} >Send</button>
                 </div>
             </section>

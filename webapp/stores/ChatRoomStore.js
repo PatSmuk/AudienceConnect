@@ -35,6 +35,10 @@ var ChatRoomStore = Object.assign({}, EventEmitter.prototype, {
             ChatRoomActionCreators.fetchMessages(room_id);
         }
 
+        if (!room.polls) {
+            ChatRoomActionCreators.fetchPolls(room_id);
+        }
+
         return room;
     }
 });
@@ -57,6 +61,12 @@ Dispatcher.register(function (action) {
 
         case ActionTypes.RECEIVE_CHAT_MESSAGES: {
             _chatRooms[action.room_id].messages = action.messages;
+            ChatRoomStore.emitChange();
+            break;
+        }
+
+        case ActionTypes.RECEIVE_POLLS: {
+            _chatRooms[action.room_id].polls = action.polls;
             ChatRoomStore.emitChange();
             break;
         }
