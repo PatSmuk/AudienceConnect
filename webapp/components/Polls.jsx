@@ -4,6 +4,8 @@ var PollBuilder = require('./PollBuilder.jsx');
 
 var ChatRoomStore = require('../stores/ChatRoomStore');
 
+var ChatRoomActionCreators = require('../actions/ChatRoomActionCreators');
+
 
 function getStateFromStores(room_id) {
     return {
@@ -28,10 +30,22 @@ var Polls = React.createClass({
 
     componentDidMount: function () {
         ChatRoomStore.addChangeListener(this._onChange);
+
+        var room_id = this.props.room;
+        var updateInterval = setInterval(function () {
+            ChatRoomActionCreators.fetchPolls(room_id);
+        }, 1000);
+
+        this.setState({ updateInterval: updateInterval });
     },
 
     componentWillUnmount: function () {
         ChatRoomStore.removeChangeListener(this._onChange);
+        clearInterval(this.state.updateInterval);
+    },
+
+    handleVote: function (poll_id, answer_id) {
+        ChatRoomActionCreators.vote(this.props.room, poll_id, answer_id);
     },
 
     render: function () {
@@ -46,7 +60,7 @@ var Polls = React.createClass({
                             <ol className="answers">
                                 {poll.answers.map(answer => (
                                     <li key={answer.id}>
-                                        <a href="#" className="selected">{answer.answer}</a>
+                                        <a href="#" onClick={this.handleVote.bind(this, poll.id, answer.id)}>{answer.answer}</a>
                                         <span className="votes"> — {answer.votes} votes</span>
                                     </li>
                                 ))}

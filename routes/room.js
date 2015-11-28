@@ -442,8 +442,6 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
     var room_id = req.params.room_id;
     var question = req.body.question;
     var answers = req.body.answers;
-    console.dir(question);
-    console.dir(answers);
 
     database().then(function (client) {
         return client[0].query("SELECT * FROM chat_rooms WHERE id = $1", [room_id]).then(function (results) {

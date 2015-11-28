@@ -12,7 +12,7 @@ var PollBuilder = React.createClass({
     getInitialState: function () {
         return {
             question: '',
-            answers: ['']
+            answers: ['', '']
         };
     },
 
@@ -36,10 +36,11 @@ var PollBuilder = React.createClass({
     },
 
     handleSubmitPoll: function () {
-        if (this.state.question === '' || this.state.answers[0] === '')
+        if (this.state.question === '' || this.state.answers[0] === '' || this.state.answers[1] === '')
             return;
 
         ChatRoomActionCreators.addPoll(this.props.room, this.state.question, this.state.answers);
+        this.setState(this.getInitialState());
     },
 
     render: function () {
@@ -58,7 +59,7 @@ var PollBuilder = React.createClass({
                         <div key={index} className="line">
                             <span className="label">{index+1}.</span>
                             <input type="text" value={this.state.answers[index]} onChange={this.handleUpdateAnswer.bind(this, index)} />
-                            {index > 0 ? (
+                            {index > 1 ? (
                                 <a href="#" className="fa fa-times fa-lg" onClick={this.handleRemoveAnswer.bind(this, index)}></a>
                             ) : null}
                         </div>
