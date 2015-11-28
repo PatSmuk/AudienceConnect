@@ -19,7 +19,7 @@ var LoginActionCreators = {
         .auth(email, password)
         .end(function (err, res) {
             if (err) {
-                LoginActionCreators.receiveLoginError(err);
+                return LoginActionCreators.receiveLoginError(err);
             }
             LoginActionCreators.receiveLoginSuccess(email, password, res.body);
         });
