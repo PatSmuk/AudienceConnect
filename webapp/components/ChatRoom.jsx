@@ -31,9 +31,8 @@ var ChatRoom = React.createClass({
     componentDidMount: function () {
         ChatRoomStore.addChangeListener(this._onChange);
 
-        var room_id = this.props.room;
-        var updateInterval = setInterval(function () {
-            ChatRoomActionCreators.fetchMessages(room_id);
+        var updateInterval = setInterval(() => {
+            ChatRoomActionCreators.fetchMessages(this.props.room);
         }, 1000);
 
         this.setState({ updateInterval: updateInterval });
