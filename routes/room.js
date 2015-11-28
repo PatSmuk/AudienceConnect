@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var auth = require('../auth');
 var database = require("../database");
+var Promise = require('bluebird');
 
 /*
  * GET /rooms/
@@ -386,14 +387,34 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
                     }
 
                     return client[0].query(
-                        'SELECT (id, start_timestamp, end_timestamp, room, question) ' +
+                        'SELECT id, start_timestamp, end_timestamp, room, question ' +
                         'FROM polls ' +
                         'WHERE room = $1',
                         [room_id]
                     )
                     .then(function (results) {
-                        client[1]();
-                        return res.json(results.rows);
+                        return Promise.all(results.rows.map(function (row) {
+                            return client[0].query(
+                                'SELECT poll_answers.id, poll_answers.answer, COUNT(poll_votes.user_id) AS votes ' +
+                                'FROM poll_answers '+
+                                'LEFT JOIN poll_votes ON poll_votes.answer = poll_answers.id '+
+                                'WHERE poll_answers.poll = $1 '+
+                                'GROUP BY poll_answers.id',
+                                [row.id])
+                        }))
+                        .then(function (answer_results) {
+                            var polls = results.rows.map(function (row, i) {
+                                return {
+                                    id: row.id,
+                                    startTime: row.start_timestamp,
+                                    endTime: row.end_timestamp,
+                                    question: row.question,
+                                    answers: answer_results[i].rows
+                                };
+                            })
+                            client[1]();
+                            return res.json(polls);
+                        });
                     });
                 });
             });
@@ -410,6 +431,7 @@ router.get('/:room_id/polls', auth.requireLevel('logged_in'), function (req, res
  */
 router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, res, next) {
     req.checkBody('question', 'Question is missing').notEmpty();
+    req.checkBody('answers', 'Answers are missing').notEmpty();
     req.checkParams('room_id', 'Room ID is required and must be an ID').isInt();
 
     var errors = req.validationErrors();
@@ -419,6 +441,9 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
 
     var room_id = req.params.room_id;
     var question = req.body.question;
+    var answers = req.body.answers;
+    console.dir(question);
+    console.dir(answers);
 
     database().then(function (client) {
         return client[0].query("SELECT * FROM chat_rooms WHERE id = $1", [room_id]).then(function (results) {
@@ -426,10 +451,16 @@ router.post('/:room_id/polls', auth.requireLevel('presenter'), function (req, re
                 client[1]();
                 return res.status(400).json({ errors: "That room does not exist" });
             }
-            return client[0].query("INSERT INTO polls (room, question) VALUES ($1, $2)", [room_id, question])
+            return client[0].query("INSERT INTO polls (room, question) VALUES ($1, $2) RETURNING id", [room_id, question])
+            .then(function (results) {
+                var poll_id = results.rows[0].id;
+                return Promise.all(answers.map(function (answer) {
+                    return client[0].query("INSERT INTO poll_answers (poll, answer) VALUES ($1, $2)", [poll_id, answer]);
+                }));
+            })
             .then(function () {
                 client[1]();
-                res.json({});
+                return res.json({});
             });
         })
         .catch(function (err) { client[1](); throw err; });

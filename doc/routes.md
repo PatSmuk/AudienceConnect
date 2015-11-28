@@ -313,8 +313,8 @@ Example request:
 {
 	"question": "What is the question?",
 	"answers": [
-		{"id": 1, "answer": "Yes"},
-		{"id": 2, "answer": "No"}
+		"Yes",
+		"No"
 	]
 }
 ```
