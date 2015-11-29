@@ -14,7 +14,10 @@ It was made with ❤ by:
 Setup Instructions
 ------------------
 
-1. Install [Node.js](https://nodejs.org/en/download/) and [PostgreSQL](http://www.postgresql.org/download/) for your platform.
+1. Install:
+   1. [Node.js](https://nodejs.org/en/download/)
+   2. [PostgreSQL](http://www.postgresql.org/download/)
+   3. Gulp via `npm install gulp -g` (after installing Node.js)
 2. Inside this project's directory, run `npm install` (npm is included with Node.js).
 3. Create a new database called `audience_connect` in PostgreSQL.
 4. Execute `schema.sql` on the database.
