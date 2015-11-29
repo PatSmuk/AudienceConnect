@@ -21,7 +21,7 @@ Setup Instructions
 5. Edit `database_info.json` so that the app has valid credentials for accessing the database.
 6. To run the app:
    1. In *debug mode* (live reloading, stack traces), run `gulp` and wait a few seconds for `webpack` to finish.
-   2. In *production mode* (no live reloading, no stack traces), run:
+   2. In *production mode* (no live reloading, no stack traces), run `gulp webpack` and then either:
       1. `NODE_ENV=production PORT=80 bin/www` if you use Bash.
       2. `cmd /C "set NODE_ENV=production && set PORT=80 && node ./bin/www"` if you use Command Prompt.
 7. Open the app in your favorite web browser by going to http://127.0.0.1/ (or http://127.0.0.1:3000/ in debug mode).
