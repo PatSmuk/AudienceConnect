@@ -87,7 +87,7 @@ var InvitationList = React.createClass({
                             var user = UserStore.getUser(user_id);
                             return (
                                 <li key={user_id}>
-                                    <img src="http://placehold.it/50x50" width="50px" height="50px" alt="Bob's Avatar" />
+                                    <img src={(user && user.avatar) ? user.avatar : "http://placehold.it/50x50"} width="50px" height="50px" alt={(user ? user.fullName : "Unknown User") + "'s Avatar"} />
                                     <span className="name">{user ? user.fullName : 'Loading...'}</span>
                                     <a href="#" className="fa fa-times fa-lg" onClick={this.handleRemoveUser.bind(this, user_id)}></a>
                                 </li>

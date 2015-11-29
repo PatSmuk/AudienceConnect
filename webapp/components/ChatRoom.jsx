@@ -2,6 +2,7 @@ var React = require('react');
 
 var ChatRoomStore = require('../stores/ChatRoomStore');
 var LoginStore = require('../stores/LoginStore');
+var UserStore = require('../stores/UserStore');
 
 var ChatRoomActionCreators = require('../actions/ChatRoomActionCreators');
 
@@ -67,6 +68,8 @@ var ChatRoom = React.createClass({
             <section className="chat-section">
                 <div className="messages">
                     {messages ? messages.map(message => {
+                        var sender = UserStore.getUser(message.sender);
+
                         if (message.sender == LoginStore.getUser().id) {
                             return (
                                 <div key={message.id} className="sent">
@@ -78,7 +81,7 @@ var ChatRoom = React.createClass({
                         else {
                             return (
                                 <div key={message.id} className="received">
-                                    <img src="http://placehold.it/50x50" width="50px" height="50px" alt="Avatar" />
+                                    <img src={(sender && sender.avatar) ? sender.avatar : "http://placehold.it/50x50"} width="50px" height="50px" alt="Avatar" />
                                     <div className="left-triangle"></div>
                                     <div className="text">{message.message_text}</div>
                                 </div>
