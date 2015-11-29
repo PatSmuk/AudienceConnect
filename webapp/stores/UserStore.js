@@ -6,7 +6,7 @@ var LoginStore = require('./LoginStore');
 var request = require('superagent');
 
 
-var _users = null;
+var _users = {};
 
 var CHANGE_EVENT = 'change';
 
@@ -25,10 +25,6 @@ var UserStore = Object.assign({}, EventEmitter.prototype, {
     },
 
     getAll: function () {
-        if (_users) {
-            return Object.keys(_users);
-        }
-
         request
         .get('/users/')
         .auth(LoginStore.getEmail(), LoginStore.getPassword())
@@ -38,36 +34,48 @@ var UserStore = Object.assign({}, EventEmitter.prototype, {
                 return;
             }
 
-            _users = {};
             res.body.forEach(function (user_id) {
-                request
-                .get('/users/' + user_id + '/')
-                .auth(LoginStore.getEmail(), LoginStore.getPassword())
-                .end(function (err, res) {
-                    if (err) {
-                        console.error(err);
-                        return;
-                    }
-                    _users[user_id] = res.body;
-                    UserStore.emitChange();
-                });
+                if (!_users.hasOwnProperty(user_id)) {
+                    request
+                    .get('/users/' + user_id + '/')
+                    .auth(LoginStore.getEmail(), LoginStore.getPassword())
+                    .end(function (err, res) {
+                        if (err) {
+                            console.error(err);
+                            console.dir(res);
+                            return;
+                        }
+                        _users[user_id] = res.body;
+                        UserStore.emitChange();
+                    });
+                }
             });
         });
 
-        return null;
+        return Object.keys(_users);
     },
 
     getUser: function (user_id) {
-        if (!_users) {
-            UserStore.getAll();
-            return null;
-        }
 
         if (_users.hasOwnProperty(user_id)) {
             return _users[user_id];
         }
+        else {
+            request
+            .get('/users/' + user_id + '/')
+            .auth(LoginStore.getEmail(), LoginStore.getPassword())
+            .end(function (err, res) {
+                if (err) {
+                    console.error(err);
+                    console.dir(res);
+                    return;
+                }
+                _users[user_id] = res.body;
+                UserStore.emitChange();
+            });
 
-        return null;
+            return null;
+        }
     }
 });
 
