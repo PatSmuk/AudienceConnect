@@ -1204,12 +1204,13 @@ describe('POST /rooms/:room_id/polls', function () {
     });
 
     var pres_question = "Do you like cheese?";
+    var answers = ['Yes', 'No'];
 
     it("adds a new poll to the chat room", function (done) {
         request(app)
         .post('/rooms/'+chatRoom.id+'/polls')
         .auth(presenter.email, presenter.password)
-        .send({ question: pres_question })
+        .send({ question: pres_question, answers: answers })
         .expect(200, done);
     });
 
@@ -1374,7 +1375,7 @@ describe('POST /rooms/:room_id/close', function () {
             return client[0].query("UPDATE chat_rooms SET end_timestamp = $1 WHERE id = $2", [new Date(), chatRoom.id])
             .then(function () {
                 client[1]();
-                
+
                 request(app)
                     .post('/rooms/'+ chatRoom.id +'/close')
                     .auth(presenter.email, presenter.password)
