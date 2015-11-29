@@ -92,7 +92,7 @@ var WelcomeScreen = React.createClass({
                             {feedback}
                             <div className="line">
                                 <label>Email:
-                                    <input type="email" onKeyPress={this.handleInputKeyPress} value={this.state.email} onChange={this.handleEmailChange} />
+                                    <input type="email" onKeyPress={this.handleInputKeyPress} value={this.state.email} onChange={this.handleEmailChange} autofocus />
                                 </label>
                             </div>
                             <div className="line">

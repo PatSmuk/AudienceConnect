@@ -66,7 +66,7 @@ var ChatRoom = React.createClass({
 
         return (
             <section className="chat-section">
-                <div className="messages">
+                <div className="messages" ref="messages">
                     {messages ? messages.map(message => {
                         var sender = UserStore.getUser(message.sender);
 
@@ -95,6 +95,15 @@ var ChatRoom = React.createClass({
                 </div>
             </section>
         );
+    },
+
+    componentDidUpdate: function () {
+        this._scrollToBottom();
+    },
+
+    _scrollToBottom: function () {
+        var messages = this.refs.messages.getDOMNode();
+        messages.scrollTop = messages.scrollHeight;
     }
 });
 

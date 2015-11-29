@@ -15,7 +15,7 @@ var auth = require('../auth');
  * Send the web app to the user.
  */
 router.get('/', function (req, res) {
-    res.render('index', { title: 'Express' });
+    res.render('index', { title: 'Audience Connect' });
 });
 
 /*
