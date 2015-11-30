@@ -107,7 +107,7 @@ describe('POST /polls/:poll_id/vote', function () {
     });
 
 
-    // this shit works
+    // this works
     var poll = {
         id: null,
         room: null,
@@ -157,7 +157,7 @@ describe('POST /polls/:poll_id/vote', function () {
         .expect(404, done)
     });
 
-    //this tests the fucking voting system
+    //this tests the voting system
     it('allows audience members to vote', function (done) {
         request(app)
         .post('/polls/' + poll.id + '/vote')
@@ -185,7 +185,7 @@ describe('POST /polls/:poll_id/vote', function () {
         .expect(404, done)
     });
 
-    //this tests the fucking duplicate votes
+    //this tests the duplicate votes
     it("doesn't allow duplicate votes", function (done) {
         database().then(function (client) {
             client[0].query("INSERT INTO poll_votes (poll, user_id, answer) VALUES ($1, $2, $3)", [poll.id, user.id, ans.id])
@@ -351,7 +351,7 @@ describe('POST /polls/:poll_id/close', function () {
         .expect(401, done)
     });
 
-    //close the fucking vote if you are presenter
+    //close the vote if you are presenter
     it('allows the presenter to close their polls', function (done) {
         request(app)
         .post('/polls/' + poll.id + '/close')
@@ -394,7 +394,7 @@ describe('POST /polls/:poll_id/close', function () {
         });
     });
 
-    //close the fucking vote if you are NOT presenter
+    //close the vote if you are NOT presenter
     it('requires you to be a presenter', function (done) {
         request(app)
         .post('/polls/' + poll.id + '/close')
@@ -403,7 +403,7 @@ describe('POST /polls/:poll_id/close', function () {
         .expect(403, done);
     });
 
-    //poll id DNE motherfucker
+    //poll id DNE
     it('requires the poll to exist', function (done) {
         request(app)
         .post('/polls/' + (poll.id + 1) + '/close')

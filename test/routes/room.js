@@ -695,7 +695,7 @@ describe('POST /rooms/:room_id/messages/', function () {
         .catch(done);
     });
 
-    var good_message_text = 'LMAOFUCK';
+    var good_message_text = 'LMAO';
 
     it('allows room owners to send messages', function (done) {
 

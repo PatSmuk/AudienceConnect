@@ -31,7 +31,7 @@ describe('GET /users/:user_id/', function () {
         .expect(401, done)
     });
 
-    //this tests if the fucking user exists
+    //this tests if the user exists
     it('returns information about a user', function (done) {
         request(app)
         .get('/users/' + user.id)
